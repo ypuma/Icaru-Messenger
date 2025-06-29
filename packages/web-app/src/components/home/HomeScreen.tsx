@@ -62,6 +62,18 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
     const trimmedNickname = nicknameInput.trim();
     if (!trimmed) return;
 
+    // Validate handle length
+    if (trimmed.length > 7) {
+      setErrorMessage('Handle darf maximal 7 Zeichen lang sein.');
+      return;
+    }
+
+    // Validate nickname length
+    if (trimmedNickname.length > 30) {
+      setErrorMessage('Nickname darf maximal 30 Zeichen lang sein.');
+      return;
+    }
+
     // Clear any previous error messages
     setErrorMessage(null);
     setIsSubmitting(true);
@@ -94,17 +106,25 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
   };
 
   const saveNickname = async (contact: Contact) => {
+    const trimmedNickname = editNicknameValue.trim();
+    
+    // Validate nickname length
+    if (trimmedNickname.length > 30) {
+      alert('Nickname darf maximal 30 Zeichen lang sein.');
+      return;
+    }
+    
     try {
       const sessionData = localStorage.getItem('secmes_current_session');
       if (!sessionData) return;
       const { token } = JSON.parse(sessionData);
       
-      await updateContactNickname(contact.id, editNicknameValue.trim(), token);
+      await updateContactNickname(contact.id, trimmedNickname, token);
       
       // Update local state
       setContacts(prev => prev.map(c => 
         c.id === contact.id 
-          ? { ...c, nickname: editNicknameValue.trim() || undefined }
+          ? { ...c, nickname: trimmedNickname || undefined }
           : c
       ));
       
@@ -205,8 +225,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
                       }}
                       className={styles.editInput}
                       placeholder={`${contact.handle}`}
+                      maxLength={30}
                       autoFocus
                     />
+                    <div className={styles.charCounter}>
+                      {editNicknameValue.length}/30
+                    </div>
                     <div className={styles.editActions}>
                       <button
                         onClick={() => saveNickname(contact)}
@@ -314,6 +338,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
             className={styles.inputField}
             autoFocus
             disabled={isSubmitting}
+            maxLength={7}
           />
           <input
             type="text"
@@ -328,6 +353,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
               if (e.key === 'Enter' && !isSubmitting) submitHandle();
             }}
             className={styles.inputField}
+            maxLength={30}
             disabled={isSubmitting}
           />
           <button

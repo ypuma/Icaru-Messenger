@@ -337,6 +337,14 @@
   }
 }
 
+.charCounter {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: right;
+  margin-top: 0.25rem;
+  font-family: 'SF Pro Rounded', sans-serif;
+}
+
 .editActions {
   display: flex;
   gap: 0.5rem;
