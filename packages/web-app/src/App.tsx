@@ -9,7 +9,7 @@ import WelcomeScreen from './components/auth/RegisterForm/WelcomeScreen';
 import { addContact as addContactApi } from './lib/api/contactApi';
 import { globalMessageService } from './lib/services/GlobalMessageService';
 
-const API_BASE_URL = 'http://0.0.0.0:11401';
+const API_BASE_URL = 'https://0.0.0.0:11401';
 import './styles/App.css';
 
 interface User {

@@ -360,7 +360,7 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     setIsClearing(true);
     try {
       // Call backend API to clear messages
-      const response = await fetch(`http://0.0.0.0:11401/api/messages/clear`, {
+      const response = await fetch(`https://0.0.0.0:11401/api/messages/clear`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${currentUser.sessionToken}`,

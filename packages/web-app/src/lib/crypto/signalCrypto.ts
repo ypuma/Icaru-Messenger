@@ -188,7 +188,7 @@ export class SignalCrypto {
   ): Promise<Session> {
     console.log('🔄 Establishing session with:', partnerHandle);
     
-    const response = await fetch(`http://0.0.0.0:11401/api/keys/bundle/${encodeURIComponent(partnerHandle)}`, {
+    const response = await fetch(`https://0.0.0.0:11401/api/keys/bundle/${encodeURIComponent(partnerHandle)}`, {
       headers: { 
         'Authorization': `Bearer ${authToken}`,
       }

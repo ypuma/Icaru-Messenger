@@ -39,7 +39,7 @@ test.describe('Basic Application Functionality', () => {
     await page.goto('/');
     
     // Test handle availability check
-    const response = await page.request.post('http://0.0.0.0:11401/api/auth/check-handle', {
+    const response = await page.request.post('https://0.0.0.0:11401/api/auth/check-handle', {
       data: { handle: 'TST-123' }
     });
     
@@ -54,7 +54,7 @@ test.describe('Basic Application Functionality', () => {
     await page.goto('/');
     
     // Test with invalid handle format
-    const response = await page.request.post('http://0.0.0.0:11401/api/auth/check-handle', {
+    const response = await page.request.post('https://0.0.0.0:11401/api/auth/check-handle', {
       data: { handle: 'invalid' }
     });
     

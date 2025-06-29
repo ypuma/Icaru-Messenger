@@ -36,7 +36,7 @@ EXPOSE 11401
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "const http = require('http'); http.get('http://0.0.0.0:11401/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); });"
+  CMD node -e "const http = require('http'); http.get('https://0.0.0.0:11401/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); });"
 
 # Start the application
 CMD ["npm", "start"] 

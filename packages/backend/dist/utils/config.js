@@ -13,7 +13,7 @@ const configSchema = zod_1.z.object({
     JWT_SECRET: zod_1.z.string().default('your-super-secret-jwt-key-here-change-in-production'),
     JWT_EXPIRES_IN: zod_1.z.string().default('7d'),
     // CORS
-    CORS_ORIGIN: zod_1.z.string().default('http://0.0.0.0:11402'),
+    CORS_ORIGIN: zod_1.z.string().default('https://0.0.0.0:11402'),
     // Rate Limiting
     RATE_LIMIT_MAX: zod_1.z.number().default(100),
     RATE_LIMIT_WINDOW: zod_1.z.number().default(900000), // 15 minutes

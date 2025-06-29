@@ -1,6 +1,6 @@
 import type { UserAccount } from '@secure-messenger/shared';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://0.0.0.0:11401';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://0.0.0.0:11401';
 
 export interface CreateAccountRequest {
   handle: string;

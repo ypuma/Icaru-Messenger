@@ -7,7 +7,7 @@ interface SessionInfo {
   sessionId: string;
 }
 
-const API = 'http://0.0.0.0:11401/api';
+const API = 'https://0.0.0.0:11401/api';
 
 async function createAccount(prefix: string): Promise<SessionInfo> {
   const unique = Date.now().toString().slice(-6);

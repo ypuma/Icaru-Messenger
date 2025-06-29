@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://0.0.0.0:11401';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://0.0.0.0:11401';
 
 export const deleteContact = async (contactHandle: string, authToken: string): Promise<void> => {
   const response = await fetch(`${API_BASE_URL}/api/contacts/${encodeURIComponent(contactHandle)}`, {
