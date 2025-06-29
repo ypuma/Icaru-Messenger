@@ -1,12 +1,14 @@
 .home-root {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100vw;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  background: #000000;
+  justify-content: flex-end;
+  background: #090909;
   padding-top: 80px; /* Space for header */
   padding-bottom: 100px; /* Space for FAB */
   overflow-y: auto;
@@ -20,10 +22,23 @@
   height: 64px;
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  background: rgba(0, 0, 0, 0.9);
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.76);
   backdrop-filter: blur(6px);
   z-index: 100;
+  padding: 0 0.75rem;
+}
+
+.headerLeft,
+.headerRight {
+  display: flex;
+  align-items: center;
+  min-width: 100px; /* Increased width for better spacing */
+  max-width: 120px; /* Prevent overflow */
+}
+
+.headerRight {
+  justify-content: flex-start;
 }
 
 .brand {
@@ -40,7 +55,7 @@
 .card {
   width: 90vw;
   max-width: 320px;
-  margin-top: 2rem;
+  margin: 2rem auto 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -67,7 +82,7 @@
 }
 
 .handleBadge {
-  position: static;
+  position: relative;
   background: #ffffff;
   color: #000000;
   font-family: 'SF Pro Rounded', sans-serif;
@@ -191,9 +206,9 @@
   background: #fa2b20;
   color: #ffffff;
   font-family: 'SF Pro Rounded', sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  padding: 0.45rem 1rem;
+  padding: 0.4rem 0.8rem;
   border-radius: 0.75rem;
   box-shadow: 0 2px 6px rgba(0,0,0,0.25);
   cursor: pointer;
@@ -207,8 +222,6 @@
 // Contact list styles
 .contactCard {
   display: inline-block;
-  min-width: fit-content;
-  max-width: 100%;
   padding: 0.75rem 1rem;
   margin-bottom: 0.5rem;
   background: rgba(255, 255, 255, 0.9);
@@ -217,12 +230,31 @@
   font-family: 'SF Pro Rounded', sans-serif;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.15s ease;
   position: relative;
+  overflow: hidden;
+  width: fit-content;
+  max-width: calc(100% - 2rem);
   
-  &:hover {
+  &:hover, &.expanded {
     background: rgba(255, 255, 255, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    
+    .iconContainer {
+      width: 72px; /* Expand to show icons */
+    }
+    
+    .editButton {
+      opacity: 1;
+      transform: scale(1);
+    }
+    
+    .deleteButton {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
   
   &:active {
@@ -239,7 +271,19 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.125rem;
+  min-height: 32px; /* Ensure consistent height */
   width: fit-content;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 0;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  justify-content: flex-end; /* Align icons to the right */
 }
   
   .contactName {
@@ -261,13 +305,19 @@
   font-size: 0.75rem;
   color: #6b7280;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.2s, 
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.2s,
+              background-color 0.2s ease,
+              color 0.2s ease;
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 24px;
   height: 24px;
+  border-radius: 4px;
+  opacity: 0;
+  transform: scale(0.8);
   
   &:hover {
     background: rgba(255, 255, 255, 1);
@@ -277,7 +327,7 @@
   }
   
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.75);
     background: rgba(243, 244, 246, 1);
   }
 }
@@ -288,13 +338,19 @@
   font-size: 0.75rem;
   color: #dc2626;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.2s, 
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.2s,
+              background-color 0.2s ease,
+              color 0.2s ease;
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 24px;
   height: 24px;
+  border-radius: 4px;
+  opacity: 0;
+  transform: scale(0.8);
   
   &:hover {
     background: rgba(255, 255, 255, 1);
@@ -303,7 +359,7 @@
   }
   
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.75);
     background: rgba(243, 244, 246, 1);
   }
 }
@@ -544,7 +600,7 @@
 }
 
 .logoutModalContent {
-  background: #374151;
+  background: rgba($color: #1d1d1dbd, $alpha: 0.3);
   border-radius: 12px;
   padding: 24px;
   width: 90%;
@@ -611,7 +667,9 @@
 
 .logoutCancelButton {
   padding: 0.5rem 1rem;
-  background: #4b5563;
+  position: fixed;
+  left: 5%;
+  background: #3d3d3d;
   color: #d1d5db;
   border-radius: 8px;
   font-family: 'SF Pro Rounded', sans-serif;
@@ -628,6 +686,8 @@
 
 .logoutConfirmButton {
   padding: 0.5rem 1rem;
+  //position: fixed;
+  //ight: 25%;
   background: #dc2626;
   color: #ffffff;
   border-radius: 8px;
@@ -643,29 +703,58 @@
   }
 }
 
+
+
 // Search input styling
 
 .searchContainer {
   width: 100%;
-  padding: 0 1.75rem;
-  margin-bottom: 0.75rem;
+  max-width: 320px; /* Match the card max-width */
+  padding: 0;
+  margin: 0 auto 0.75rem auto;
   position: relative;
+  left: -10%;
+  box-sizing: border-box;
+  
+  // Mobile adjustments
+  @media (max-width: 768px) {
+    padding: 0 1rem;
+    max-width: 280px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0 0.75rem;
+    max-width: 260px;
+  }
+  
+  @media (max-width: 400px) {
+    padding: 0 0.5rem;
+    max-width: 240px;
+  }
 }
 
 .searchIcon {
   position: absolute;
-  left: 2.75rem;
+  left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
   color: rgba(255, 255, 255, 0.5);
   pointer-events: none;
+  z-index: 10;
+  
+  // Mobile adjustments
+  @media (max-width: 768px) {
+    left: 0.75rem;
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .searchInput {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  padding: 0.75rem 1rem 0.75rem 2.25rem;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 0.75rem;
@@ -676,16 +765,32 @@
   outline: none;
   transition: all 0.2s ease;
   backdrop-filter: blur(10px);
+  min-height: 44px; /* iOS recommended touch target size */
+  
+  // Mobile adjustments
+  @media (max-width: 768px) {
+    font-size: 1rem; /* Prevent zoom on iOS */
+    padding: 0.875rem 1rem 0.875rem 2.25rem;
+    border-radius: 1rem;
+  }
   
   &::placeholder {
     color: rgba(255, 255, 255, 0.5);
     font-weight: 400;
+    
+    @media (max-width: 768px) {
+      font-size: 1rem;
+    }
   }
   
   &:focus {
     background: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.4);
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+    
+    @media (max-width: 768px) {
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+    }
   }
   
   &:hover {

@@ -35,11 +35,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLogoutModalFadingOut, setIsLogoutModalFadingOut] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedContact, setExpandedContact] = useState<string | null>(null);
 
   // Fetch contacts on mount
   useEffect(() => {
     fetchContacts();
   }, []);
+
+
 
   const fetchContacts = async () => {
     try {
@@ -205,30 +208,61 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
     return handle.includes(searchLower) || nickname.includes(searchLower);
   });
 
+  // Handle contact expansion
+  const handleContactMouseEnter = (contactId: string) => {
+    setExpandedContact(contactId);
+  };
+
+  const handleContactMouseLeave = () => {
+    setExpandedContact(null);
+  };
+
+  // Handle touch events for mobile
+  const handleContactTouch = (e: React.TouchEvent, contactId: string) => {
+    // Only handle if not touching on buttons
+    if ((e.target as Element).closest('button')) {
+      return;
+    }
+    
+    e.preventDefault(); // Prevent default touch behavior
+    
+    if (expandedContact === contactId) {
+      // Second touch - collapse
+      setExpandedContact(null);
+    } else {
+      // First touch - expand
+      setExpandedContact(contactId);
+    }
+  };
+
   return (
     <div className={styles["home-root"]}>
       {/* Header bar */}
       <header className={styles.headerBar}>
-        <h1 className={styles.brand}>Icaru</h1>
+        <div className={styles.headerLeft}>
+          <h1 className={styles.brand}>Icaru</h1>
+        </div>
         <div className={styles.handleBadge}>{handle}</div>
-        <button
-          type="button"
-          onClick={() => setShowLogoutConfirm(true)}
-          aria-label="Abmelden"
-          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg shadow transition-transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-400"
-        >
-          Abmelden
-        </button>
+        <div className={styles.headerRight}>
+          <button
+            type="button"
+            onClick={() => setShowLogoutConfirm(true)}
+            aria-label="Abmelden"
+            className={styles.logoutHeader}
+          >
+            Abmelden
+          </button>
+        </div>
       </header>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className={`${styles.card} w-full max-w-xs`}
+        className={styles.card}
       >
         {/* Contacts list */}
-        <h2 className="text-white font-semibold mb-2 self-start" style={{ paddingLeft: '1.75rem' }}>Kontakte</h2>
+        <h2 className="text-white font-semibold mb-2 text-center">Kontakte</h2>
         
         {/* Search input */}
         <div className={styles.searchContainer}>
@@ -253,7 +287,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
           />
         </div>
 
-        <div className="w-full max-h-60 overflow-y-auto flex flex-col items-start">
+        <div className="w-full max-h-60 overflow-y-auto flex flex-col items-center">
           {contacts.length === 0 ? (
             <p className="text-gray-400 text-sm text-center w-full">Keine Kontakte</p>
           ) : filteredContacts.length === 0 ? (
@@ -295,42 +329,50 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
                     </div>
                   </div>
                 ) : (
-                  <div className={styles.contactCard}>
+                  <div 
+                    className={`${styles.contactCard} ${expandedContact === contact.id ? styles.expanded : ''}`}
+                    data-contact-id={contact.id}
+                    onMouseEnter={() => handleContactMouseEnter(contact.id)}
+                    onMouseLeave={handleContactMouseLeave}
+                    onTouchStart={(e) => handleContactTouch(e, contact.id)}
+                  >
                     <div 
                       onClick={() => onContactSelect(contact.handle)}
                       className={styles.contactInfo}
                     >
                       <div className={styles.contactNameRow}>
                         <div className={styles.contactName}>{getDisplayName(contact)}</div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startEditingNickname(contact);
-                          }}
-                          className={styles.editButton}
-                          title="Nickname bearbeiten"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-edit">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                          </svg>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteContact(contact);
-                          }}
-                          className={styles.deleteButton}
-                          title="Kontakt löschen"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-trash-2">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                            <path d="M10 11v6" />
-                            <path d="M14 11v6" />
-                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                          </svg>
-                        </button>
+                        <div className={styles.iconContainer}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startEditingNickname(contact);
+                            }}
+                            className={styles.editButton}
+                            title="Nickname bearbeiten"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-edit">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteContact(contact);
+                            }}
+                            className={styles.deleteButton}
+                            title="Kontakt löschen"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-trash-2">
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                              <path d="M10 11v6" />
+                              <path d="M14 11v6" />
+                              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                       {contact.nickname && (
                         <div className={styles.contactHandle}>{contact.handle}</div>
