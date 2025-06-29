@@ -72,9 +72,9 @@ export default defineConfig({
         secure: false,
       },
     },
-    allowedHosts: {
+    allowedHosts: [
       'test.mendes.dev',
       'icaru.systems',
-    }
+    ]
   }
 })
