@@ -33,6 +33,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isLogoutModalFadingOut, setIsLogoutModalFadingOut] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch contacts on mount
   useEffect(() => {
@@ -184,6 +186,25 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
     return contact.nickname || `${contact.handle}`;
   };
 
+  const handleLogoutCancel = () => {
+    setIsLogoutModalFadingOut(true);
+    setTimeout(() => {
+      setShowLogoutConfirm(false);
+      setIsLogoutModalFadingOut(false);
+    }, 200); // Match the animation duration
+  };
+
+  // Filter contacts based on search term
+  const filteredContacts = contacts.filter(contact => {
+    if (!searchTerm.trim()) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    const handle = contact.handle.toLowerCase();
+    const nickname = contact.nickname?.toLowerCase() || '';
+    
+    return handle.includes(searchLower) || nickname.includes(searchLower);
+  });
+
   return (
     <div className={styles["home-root"]}>
       {/* Header bar */}
@@ -208,12 +229,38 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
       >
         {/* Contacts list */}
         <h2 className="text-white font-semibold mb-2 self-start" style={{ paddingLeft: '1.75rem' }}>Kontakte</h2>
-        <div className="w-full max-h-60 overflow-y-auto flex flex-col">
+        
+        {/* Search input */}
+        <div className={styles.searchContainer}>
+          <svg 
+            className={styles.searchIcon}
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Suche nach Handle oder Nickname..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={styles.searchInput}
+          />
+        </div>
+
+        <div className="w-full max-h-60 overflow-y-auto flex flex-col items-start">
           {contacts.length === 0 ? (
             <p className="text-gray-400 text-sm text-center w-full">Keine Kontakte</p>
+          ) : filteredContacts.length === 0 ? (
+            <p className="text-gray-400 text-sm text-center w-full">Keine Kontakte gefunden</p>
           ) : (
-            contacts.map((contact) => (
-              <div key={contact.id} className="w-full">
+            filteredContacts.map((contact) => (
+              <div key={contact.id}>
                 {editingNickname === contact.id ? (
                   <div className={styles.editingCard}>
                     <input
@@ -370,14 +417,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
 
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm mx-4 shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Abmelden bestätigen</h3>
-            <p className="text-gray-600 mb-6">Möchten Sie sich wirklich abmelden?</p>
-            <div className="flex gap-3 justify-end">
+        <div className={`${styles.logoutModalBackdrop} ${isLogoutModalFadingOut ? styles.fadeOut : ''}`}>
+          <div className={styles.logoutModalContent}>
+            <h3>Abmelden bestätigen</h3>
+            <p>Möchten Sie sich wirklich abmelden?</p>
+            <div className={styles.logoutModalActions}>
               <button
-                onClick={() => setShowLogoutConfirm(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+                onClick={handleLogoutCancel}
+                className={styles.logoutCancelButton}
               >
                 Abbrechen
               </button>
@@ -386,7 +433,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
                   setShowLogoutConfirm(false);
                   onLogout();
                 }}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                className={styles.logoutConfirmButton}
               >
                 Abmelden
               </button>
