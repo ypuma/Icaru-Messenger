@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import SessionManager from './components/security/SessionStatus/SessionManager';
-import ChatInterface from './components/chat/ChatInterface';
+import MessagingComponent from './components/chat/MessageBubble/MessagingComponent';
 import HomeScreen from './components/home/HomeScreen';
 import { getOrCreateDeviceId } from './lib/utils/handle';
 import { webSocketClient } from './lib/websocket/websocketClient';
 import WelcomeScreen from './components/auth/RegisterForm/WelcomeScreen';
 import { addContact as addContactApi } from './lib/api/contactApi';
+import { globalMessageService } from './lib/services/GlobalMessageService';
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = 'http://79.255.198.124:3001';
 import './styles/App.css';
 
 interface User {
@@ -23,8 +24,9 @@ function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState<'home' | 'chat'>('home');
-  const [initialShowNewChat, setInitialShowNewChat] = useState(false);
   const [selectedContactHandle, setSelectedContactHandle] = useState<string | null>(null);
+  const [selectedContactDisplayName, setSelectedContactDisplayName] = useState<string | null>(null);
+  const [initialShowNewChat, setInitialShowNewChat] = useState(false);
 
   useEffect(() => {
     // Check for existing session on app start
@@ -70,18 +72,24 @@ function App() {
         });
 
         if (response.ok) {
-          setCurrentUser({
-            handle: userData.handle,
-            publicKey: userData.publicKey,
-            privateKey: userData.privateKey,
+          console.log('Session validation successful');
+          const user: User = {
+            ...userData,
             sessionToken: sessionData.token,
             sessionId: sessionData.sessionId
-          });
-          
-          // Connect to WebSocket
-          webSocketClient.connect(sessionData.token, sessionData.sessionId)
-            .catch(err => console.error('WebSocket connection failed on session check:', err));
+          };
+          setCurrentUser(user);
 
+          // Re-establish WebSocket connection
+          await webSocketClient.connect(sessionData.token, sessionData.sessionId);
+
+          // Initialize global message service
+          try {
+            await globalMessageService.initialize(user);
+            console.log('✅ GlobalMessageService initialized for existing session');
+          } catch (error) {
+            console.error('❌ Failed to initialize GlobalMessageService:', error);
+          }
         } else {
           // Clear invalid session
           localStorage.removeItem('secmes_current_user');
@@ -141,6 +149,14 @@ function App() {
 
       setCurrentUser(user);
       
+      // Initialize global message service
+      try {
+        await globalMessageService.initialize(user);
+        console.log('✅ GlobalMessageService initialized for new session');
+      } catch (error) {
+        console.error('❌ Failed to initialize GlobalMessageService:', error);
+      }
+      
       // Store user data and session
       localStorage.setItem('secmes_current_user', JSON.stringify({
         handle: userData.handle,
@@ -166,6 +182,7 @@ function App() {
   };
 
   const handleSessionInvalidated = () => {
+    globalMessageService.cleanup();
     setCurrentUser(null);
     localStorage.removeItem('secmes_current_user');
     localStorage.removeItem('secmes_current_session');
@@ -194,9 +211,36 @@ function App() {
   };
 
   // Handle navigation between Home and Chat
-  const handleSelectContact = (contactHandle: string) => {
+  const handleSelectContact = async (contactHandle: string) => {
     setSelectedContactHandle(contactHandle);
     setInitialShowNewChat(false);
+    
+    // Fetch contact info to get nickname
+    try {
+      const sessionData = localStorage.getItem('secmes_current_session');
+      if (sessionData) {
+        const { token } = JSON.parse(sessionData);
+        const response = await fetch(`${API_BASE_URL}/api/contacts`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const contact = data.contacts.find((c: any) => c.handle === contactHandle);
+          setSelectedContactDisplayName(contact?.nickname || contactHandle);
+        } else {
+          setSelectedContactDisplayName(contactHandle);
+        }
+      } else {
+        setSelectedContactDisplayName(contactHandle);
+      }
+    } catch (err) {
+      console.error('Failed to fetch contact info:', err);
+      setSelectedContactDisplayName(contactHandle);
+    }
+    
     setView('chat');
   };
 
@@ -205,22 +249,25 @@ function App() {
     setView('chat');
   };
 
-  const handleAddContact = async (contactHandle: string) => {
+  const handleAddContact = async (contactHandle: string, nickname?: string) => {
     if (!currentUser) return;
 
     try {
-      await addContactApi(contactHandle, currentUser.sessionToken);
+      await addContactApi(contactHandle, currentUser.sessionToken, nickname);
 
       // Remain on the Home view; contacts list will refresh (optimistic update in HomeScreen)
       // Optionally, reset any chat-related state
       setInitialShowNewChat(false);
     } catch (err) {
       console.error('Failed to add contact:', err);
-      alert((err as Error).message || 'Failed to add contact');
+      // Re-throw the error so HomeScreen can handle it
+      throw err;
     }
   };
 
   const handleBackHome = () => {
+    setSelectedContactHandle(null);
+    setSelectedContactDisplayName(null);
     setView('home');
   };
 
@@ -281,12 +328,38 @@ function App() {
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className="w-full h-screen bg-black overflow-hidden"
           >
-            <ChatInterface
-              currentUser={currentUser}
-              initialShowNewChat={initialShowNewChat}
-              startContactHandle={selectedContactHandle || undefined}
-              onBackHome={handleBackHome}
-            />
+            {/* Chat View - Full Screen */}
+            <div style={{ height: '100vh', width: '100%', background: '#000000', position: 'relative' }}>
+              {/* Fixed Contact Name */}
+              <div style={{ 
+                position: 'fixed', 
+                top: '1rem', 
+                left: '50%', 
+                transform: 'translateX(-50%)', 
+                zIndex: 500,
+                color: '#ffffff', 
+                fontSize: '1.5rem', 
+                fontWeight: 300, 
+                letterSpacing: '0.02em', 
+                textAlign: 'center',
+                background: 'rgba(0, 0, 0, 0.8)',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                backdropFilter: 'blur(8px)'
+              }}>
+                {selectedContactDisplayName || 'Chat'}
+              </div>
+
+              {/* Messages Component - Full Screen */}
+              {selectedContactHandle && (
+                <MessagingComponent
+                  currentUser={currentUser}
+                  contactHandle={selectedContactHandle}
+                  onClose={handleBackHome}
+                  minimal={true}
+                />
+              )}
+            </div>
           </motion.div>
         )
       )}

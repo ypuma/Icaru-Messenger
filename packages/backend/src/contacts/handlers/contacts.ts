@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { logger } from '@/utils/logger';
 import prisma from '@/db';
+import { wsManager } from '@/messaging/websocket';
 
 // Validation schemas
 const addContactSchema = z.object({
@@ -82,7 +83,26 @@ export const addContact = async (
       }
     });
 
-    logger.info(`Contact added: ${body.contactHandle} by user ${userId}`);
+          logger.info(`Contact added: ${body.contactHandle} by user ${userId}`);
+
+      // Get the current user's info for the notification
+      const currentUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { handle: true, publicKey: true }
+      });
+
+      // Notify the added user via WebSocket so they can auto-initialize session
+      if (currentUser) {
+        wsManager.broadcastToUser(contactUser.id, {
+          type: 'contact_added',
+          data: {
+            addedByHandle: currentUser.handle,
+            addedByPublicKey: currentUser.publicKey,
+            addedAt: contact.addedAt,
+          },
+          timestamp: Date.now()
+        });
+      }
 
     return reply.status(201).send({
       success: true,

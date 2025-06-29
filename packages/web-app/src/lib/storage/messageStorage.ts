@@ -467,6 +467,13 @@ class MessageStorage {
     await tx.done;
     console.log(`🗑️ Deleted all messages for conversation: ${conversationId}`);
   }
+
+  /**
+   * Clear all messages for a conversation (alias for deleteConversation)
+   */
+  async clearMessages(conversationId: string): Promise<void> {
+    return this.deleteConversation(conversationId);
+  }
 }
 
 // Singleton instance

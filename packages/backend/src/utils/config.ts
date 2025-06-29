@@ -14,7 +14,7 @@ const configSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('7d'),
   
   // CORS
-  CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  CORS_ORIGIN: z.string().default('http://79.255.198.124:5173'),
   
   // Rate Limiting
   RATE_LIMIT_MAX: z.number().default(100),

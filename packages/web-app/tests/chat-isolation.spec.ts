@@ -7,7 +7,7 @@ interface SessionInfo {
   sessionId: string;
 }
 
-const API = 'http://localhost:3001/api';
+const API = 'http://79.255.198.124:3001/api';
 
 async function createAccount(prefix: string): Promise<SessionInfo> {
   const unique = Date.now().toString().slice(-6);
@@ -33,7 +33,7 @@ async function createAccount(prefix: string): Promise<SessionInfo> {
 
 function connectWS({ token, sessionId }: SessionInfo): Promise<WebSocket> {
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket('ws://localhost:3001/ws');
+    const ws = new WebSocket('ws://79.255.198.124:3001/ws');
     ws.on('open', () => {
       ws.send(JSON.stringify({ type: 'auth', data: { token, sessionId }, timestamp: Date.now() }));
     });

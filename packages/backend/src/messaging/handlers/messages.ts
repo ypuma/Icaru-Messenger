@@ -22,6 +22,10 @@ const getMessagesSchema = z.object({
   offset: z.number().min(0).default(0),
 });
 
+const clearMessagesSchema = z.object({
+  contactHandle: z.string(),
+});
+
 export const sendMessage = async (
   request: FastifyRequest,
   reply: FastifyReply
@@ -278,6 +282,75 @@ export const markMessageDelivered = async (
     return reply.status(500).send({
       error: 'Internal Server Error',
       message: 'Failed to mark message as delivered'
+    });
+  }
+};
+
+export const clearMessages = async (
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> => {
+  try {
+    const body = clearMessagesSchema.parse(request.body);
+    const userId = request.user!.userId;
+
+    // Find the contact
+    const contact = await prisma.user.findUnique({
+      where: { handle: body.contactHandle },
+      select: { id: true, handle: true }
+    });
+
+    if (!contact) {
+      return reply.status(404).send({
+        error: 'Not Found',
+        message: 'Contact not found'
+      });
+    }
+
+    // Delete all messages between users
+    const deleteResult = await prisma.message.deleteMany({
+      where: {
+        OR: [
+          {
+            senderId: userId,
+            receiverId: contact.id
+          },
+          {
+            senderId: contact.id,
+            receiverId: userId
+          }
+        ]
+      }
+    });
+
+    // Get current user's handle for logging
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { handle: true }
+    });
+
+    logger.info(`Cleared ${deleteResult.count} messages between ${currentUser?.handle || 'unknown'} and ${contact.handle}`);
+
+    return reply.send({
+      success: true,
+      message: 'Chat cleared successfully',
+      deletedCount: deleteResult.count
+    });
+
+  } catch (error) {
+    logger.error('Clear messages error:', error);
+
+    if (error instanceof z.ZodError) {
+      return reply.status(400).send({
+        error: 'Bad Request',
+        message: 'Invalid input data',
+        details: error.errors
+      });
+    }
+
+    return reply.status(500).send({
+      error: 'Internal Server Error',
+      message: 'Failed to clear chat'
     });
   }
 }; 

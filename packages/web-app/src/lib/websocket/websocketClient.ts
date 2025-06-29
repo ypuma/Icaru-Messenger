@@ -1,5 +1,5 @@
 export interface WebSocketMessage {
-  type: 'message' | 'typing' | 'heartbeat' | 'auth' | 'auth_success' | 'auth_error' | 'message_sent' | 'error' | 'heartbeat_ack' | 'delivery_receipt';
+  type: 'message' | 'typing' | 'heartbeat' | 'auth' | 'auth_success' | 'auth_error' | 'message_sent' | 'error' | 'heartbeat_ack' | 'delivery_receipt' | 'contact_added';
   data: any;
   timestamp: number;
 }
@@ -53,8 +53,8 @@ class WebSocketClient {
 
     return new Promise((resolve, reject) => {
       try {
-        const wsUrl = `ws://localhost:3001/ws`;
-        this.ws = new WebSocket(wsUrl);
+        const wsUrl = import.meta.env.VITE_WS_URL || 'ws://79.255.198.124:3001';
+        this.ws = new WebSocket(`${wsUrl}/ws`);
 
         this.ws.onopen = () => {
           console.log('WebSocket connected');

@@ -11,7 +11,7 @@
     "build:shared": "cd packages/shared && npm run build",
     "build:web": "cd packages/web-app && npm run build",
     "build:backend": "cd packages/backend && npm run build",
-    "dev": "concurrently \"npm run dev:shared\" \"npm run dev:backend\" \"npm run dev:web\"",
+    "dev:all": "concurrently \"npm run dev:shared\" \"npm run dev:backend\" \"npm run dev:web\"",
     "dev:shared": "cd packages/shared && npm run dev",
     "dev:web": "cd packages/web-app && npm run dev",
     "dev:backend": "cd packages/backend && npm run dev",

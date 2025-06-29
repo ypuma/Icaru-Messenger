@@ -39,7 +39,7 @@ test.describe('Basic Application Functionality', () => {
     await page.goto('/');
     
     // Test handle availability check
-    const response = await page.request.post('http://localhost:3001/api/auth/check-handle', {
+    const response = await page.request.post('http://79.255.198.124:3001/api/auth/check-handle', {
       data: { handle: 'TST-123' }
     });
     
@@ -54,7 +54,7 @@ test.describe('Basic Application Functionality', () => {
     await page.goto('/');
     
     // Test with invalid handle format
-    const response = await page.request.post('http://localhost:3001/api/auth/check-handle', {
+    const response = await page.request.post('http://79.255.198.124:3001/api/auth/check-handle', {
       data: { handle: 'invalid' }
     });
     
@@ -89,7 +89,7 @@ test.describe('Basic Application Functionality', () => {
     await page.goto('/');
     
     // Should be on the correct URL
-    expect(page.url()).toContain('localhost:5173');
+    expect(page.url()).toContain('79.255.198.124:5173');
     
     // Page should be loaded
     await expect(page.locator('html')).toBeVisible();

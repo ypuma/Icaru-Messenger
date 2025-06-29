@@ -73,24 +73,20 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     authenticated: false,
     reconnecting: false
   });
-  const [isTyping, setIsTyping] = useState(false);
-  const [outgoingQueue, setOutgoingQueue] = useState<Message[]>([]);
   const [session, setSession] = useState<Session | null>(null);
-  const [ratchetState, setRatchetState] = useState<RatchetState | null>(null);
   const [pfsInitialized, setPfsInitialized] = useState<boolean>(false);
   const [encryptionError, setEncryptionError] = useState<string>('');
+  const [showClearConfirm, setShowClearConfirm] = useState<boolean>(false);
+  const [isClearing, setIsClearing] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messageIdsRef = useRef<Set<string>>(new Set());
-
-  // Create a ref to hold the latest PFS status to avoid stale closures in handlers
   const pfsInitializedRef = useRef(pfsInitialized);
+
   useEffect(() => {
     pfsInitializedRef.current = pfsInitialized;
   }, [pfsInitialized]);
 
-  // Stable conversation id derived from the two handles (lexicographically)
   const conversationId = useMemo(() => {
     return [currentUser.handle, contactHandle].sort((a, b) => a.localeCompare(b)).join('#');
   }, [currentUser.handle, contactHandle]);
@@ -98,10 +94,9 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
   useEffect(() => {
     initChat();
     return () => {
-      webSocketClient.offMessage('message', handleIncomingMessage);
+      // Clean up only sending-related handlers
       webSocketClient.offMessage('message_sent', handleMessageSent);
       webSocketClient.offMessage('delivery_receipt', handleDeliveryReceipt);
-      webSocketClient.offMessage('typing', handleTypingIndicator);
       webSocketClient.offConnectionChange(handleConnectionChange);
     };
   }, [contactHandle]);
@@ -110,8 +105,20 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     scrollToBottom();
   }, [messages]);
 
+  // Refresh messages periodically to pick up messages stored by GlobalMessageService
+  useEffect(() => {
+    if (!session) return;
+    
+    const refreshInterval = setInterval(() => {
+      loadMessageHistory(session);
+    }, 2000); // Refresh every 2 seconds
+
+    return () => clearInterval(refreshInterval);
+  }, [session]);
+
   const initChat = async () => {
     try {
+      // Initialize message storage (safe to call multiple times)
       await messageStorage.initialize(currentUser.privateKey);
       await sessionManager.initialize();
       
@@ -119,17 +126,12 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
       const newSession = await sessionManager.getOrCreateSession(contactHandle, currentUser);
       setSession(newSession);
 
-      // Initialize PFS right after getting the session
       await initializePFS(newSession);
-
-      // Load message history only after PFS is confirmed ready
       await loadMessageHistory(newSession);
       
-      // Setup WebSocket listeners last
-      webSocketClient.onMessage('message', handleIncomingMessage);
+      // Register only sending-related handlers (GlobalMessageService handles receiving)
       webSocketClient.onMessage('message_sent', handleMessageSent);
       webSocketClient.onMessage('delivery_receipt', handleDeliveryReceipt);
-      webSocketClient.onMessage('typing', handleTypingIndicator);
       webSocketClient.onConnectionChange(handleConnectionChange);
       
       setConnectionStatus(webSocketClient.getConnectionStatus());
@@ -163,7 +165,7 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     } catch (error) {
       console.error('❌ Failed to initialize PFS:', error);
       setEncryptionError('Failed to initialize Perfect Forward Secrecy');
-      throw error; // Re-throw to be caught by initChat
+      throw error;
     }
   };
 
@@ -174,197 +176,35 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     }
 
     try {
-      // 1. Load the persisted ratchet state ONCE.
-      let currentRatchetState = await browserStorage.getRatchetState(contactHandle);
-      if (!currentRatchetState) {
-        console.warn(`No ratchet state in storage for ${contactHandle}, cannot decrypt history.`);
-        const encryptedMsgs: EncryptedMessage[] = await messageStorage.getMessages(conversationId, 100);
-        const mapped = encryptedMsgs.reverse().map(enc => {
-          const msg: Message = {
-            id: enc.id,
-            content: '[Encryption session not found]',
-            messageType: enc.messageType,
-            senderHandle: enc.senderId,
-            timestamp: new Date(enc.timestamp).toISOString(),
-            isOwn: enc.senderId === currentUser.handle,
-            status: 'delivered',
-            delivered: true
-          };
-          messageIdsRef.current.add(msg.id);
-          return msg;
-        });
-        setMessages(mapped);
-        return;
-      }
-
+      console.log(`📜 Loading message history for ${contactHandle}, conversationId: ${conversationId}`);
       const encryptedMsgs: EncryptedMessage[] = await messageStorage.getMessages(conversationId, 100);
+      console.log(`📜 Found ${encryptedMsgs.length} stored messages for ${contactHandle}:`, encryptedMsgs.map(m => ({ id: m.id, from: m.senderId, content: m.plaintext })));
+      
       const chronological = [...encryptedMsgs].reverse();
       const decryptedMessages: Message[] = [];
 
-      // 2. Process messages SERIALLY.
       for (const enc of chronological) {
-        let content = '[Decrypting...]';
-        let decrypted = false;
-        let isPfsFormat = false;
-
-        // If plaintext is available, use it directly. This is the primary path.
-        if (enc.plaintext) {
-          content = enc.plaintext;
-          decrypted = true;
-          // We can still check the format for the UI tag
-          try {
-            isPfsFormat = JSON.parse(enc.encryptedContent)?.messageNumber !== undefined;
-          } catch {}
-        } else if (enc.senderId === currentUser.handle) {
-          // Own message without plaintext is an error, but show something.
-          content = '[Message content unavailable]';
-        } else {
-          // Fallback decryption for incoming messages that failed to store plaintext.
-          try {
-            const parsedData = JSON.parse(enc.encryptedContent);
-            isPfsFormat = parsedData.messageNumber !== undefined;
-
-            // Try PFS decryption first
-            if (pfsInitializedRef.current && isPfsFormat) {
-              try {
-                // 3. Use the state directly and update it for the next iteration.
-                const result = await SignalCrypto.decryptWithPFS(parsedData, currentRatchetState);
-                content = result.message;
-                currentRatchetState = result.newRatchetState; // Update for next loop
-                decrypted = true;
-              } catch (pfsError) {
-                console.warn(`⚠️ PFS decryption failed for stored message ${enc.id}, trying basic.`, pfsError);
-              }
-            }
-            
-            // Fallback to basic decryption if PFS failed or was not applicable
-            if (!decrypted && parsedData.c && parsedData.n) {
-              try {
-                content = await SignalCrypto.decrypt(parsedData, sessionForHistory.keys);
-                decrypted = true;
-              } catch (err) {
-                console.warn(`⚠️ Basic decryption failed for stored message ${enc.id}.`, err);
-              }
-            }
-            
-            if (!decrypted) {
-              content = '[Decryption Failed]';
-            }
-          } catch (parseError) {
-            console.error(`❌ Failed to parse stored message ${enc.id}:`, parseError);
-            content = '[Parse Error]';
-          }
-        }
-
+        const content = enc.plaintext || (enc.senderId === currentUser.handle ? '[Message content unavailable]' : '[Decryption needed]');
+        
         const msg: Message = {
           id: enc.id,
           content,
           encrypted: true,
-          encryptedData: decrypted ? undefined : enc.encryptedContent,
           messageType: enc.messageType,
           senderHandle: enc.senderId,
           timestamp: new Date(enc.timestamp).toISOString(),
           isOwn: enc.senderId === currentUser.handle,
           status: enc.status === 'sending' ? 'pending' : (enc.status === 'read' ? 'delivered' : enc.status as 'sent' | 'delivered'),
           delivered: enc.status === 'delivered' || enc.status === 'read',
-          pfsMessage: isPfsFormat && decrypted
         };
         messageIdsRef.current.add(msg.id);
         decryptedMessages.push(msg);
       }
 
+      console.log(`📜 Setting ${decryptedMessages.length} messages for ${contactHandle} UI`);
       setMessages(decryptedMessages);
-
-      // 4. After decrypting all history, update the live state in PFSIntegration cache and storage.
-      await PFSIntegration.updateRatchetState(contactHandle, currentRatchetState);
-
     } catch (err) {
       console.error('Failed loading message history', err);
-    }
-  };
-
-  const handleIncomingMessage = async (wsMessage: WebSocketMessage) => {
-    const messageData = wsMessage.data as MessageData & { encryptedData?: string; encrypted?: boolean; pfsMessage?: boolean };
-
-    // Ensure the message is for the currently active chat window.
-    if (messageData.senderHandle !== contactHandle) {
-      return; // Ignore messages not intended for this conversation.
-    }
-
-    // Atomically check for duplicates and reserve the ID to prevent race conditions.
-    if (!messageData.id || messageIdsRef.current.has(messageData.id)) {
-      return; // Ignore invalid or duplicate messages.
-    }
-    if (messageData.senderHandle === currentUser.handle) {
-      return; // Ignore echos of our own messages.
-    }
-    messageIdsRef.current.add(messageData.id);
-
-    console.log('📨 Incoming message:', { from: messageData.senderHandle, encrypted: messageData.encrypted });
-
-    let decryptedContent: string | undefined = undefined;
-    let finalContent: string;
-    let placeholder: string | null = null;
-
-    if (messageData.encrypted && messageData.encryptedData) {
-      placeholder = '[Decrypting...]';
-      try {
-        if (messageData.pfsMessage && pfsInitializedRef.current) {
-          const pfsMessage = JSON.parse(messageData.encryptedData);
-          const result = await PFSIntegration.decryptMessage(messageData.senderHandle, pfsMessage);
-          decryptedContent = result;
-          console.log('✅ PFS Message decrypted:', decryptedContent.slice(0, 50) + '...');
-        } else {
-          const cachedSession = sessionManager.getCachedSession(messageData.senderHandle);
-          if (cachedSession) {
-            const encryptedSignalMessage: CipherPacket = JSON.parse(messageData.encryptedData);
-            decryptedContent = await SignalCrypto.decrypt(encryptedSignalMessage, cachedSession.keys);
-            console.log('✅ Basic Message decrypted:', decryptedContent.slice(0, 50) + '...');
-          } else {
-            placeholder = '[Establishing secure session...]';
-          }
-        }
-      } catch (error) {
-        console.error('❌ Error handling encrypted message:', error);
-        placeholder = '[Decryption Error]';
-      }
-    }
-
-    finalContent = decryptedContent || placeholder || (messageData.content || '');
-
-    const newMessage: Message = {
-      id: messageData.id || `msg_${Date.now()}`,
-      content: finalContent,
-      messageType: messageData.messageType || 'text',
-      senderHandle: messageData.senderHandle,
-      timestamp: messageData.timestamp || new Date().toISOString(),
-      isOwn: false,
-      encrypted: messageData.encrypted,
-      encryptedData: decryptedContent ? undefined : messageData.encryptedData,
-      pfsMessage: messageData.pfsMessage,
-      plaintext: decryptedContent,
-    };
-
-    setMessages(prevMsgs => [...prevMsgs, newMessage]);
-
-    // Store the fully decrypted message
-    if (messageData.encrypted && messageData.encryptedData) {
-      await messageStorage.storeMessage({
-        id: newMessage.id,
-        conversationId,
-        senderId: messageData.senderHandle,
-        recipientId: currentUser.handle,
-        encryptedContent: messageData.encryptedData,
-        plaintext: decryptedContent,
-        messageType: (messageData.messageType as 'text' | 'image' | 'file') || 'text',
-        timestamp: Date.now(),
-        status: 'delivered'
-      });
-    }
-
-    // Send delivery receipt
-    if (messageData.encrypted) {
-      webSocketClient.send({ type: 'delivery_receipt', data: { messageId: messageData.id, receiverHandle: messageData.senderHandle }, timestamp: Date.now() });
     }
   };
 
@@ -376,12 +216,9 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
         : msg
     ));
 
-    // Update storage: change id and status
     (async () => {
       try {
-        // Delete old temp entry if any
         await messageStorage.updateMessageStatus(data.tempId, 'sent');
-        // In case id changed, we could duplicate but for simplicity just update status
       } catch (err) {
         console.warn('Failed to update message status in storage', err);
       }
@@ -403,23 +240,10 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     })();
   };
 
-  const handleTypingIndicator = (wsMessage: WebSocketMessage) => {
-    // Typing indicator logic can be re-added later.
-  };
-
   const handleConnectionChange = (status: ConnectionStatus) => {
     setConnectionStatus(status);
     
     if (status.connected && status.authenticated) {
-      // Process any queued messages
-      outgoingQueue.forEach(msg => {
-        if (msg.encrypted) {
-          sendEncryptedMessage(msg.content, msg.id);
-        }
-      });
-      setOutgoingQueue([]);
-      
-      // Re-initialize and load history on reconnect
       (async () => {
         const newSession = await sessionManager.getOrCreateSession(contactHandle, currentUser);
         setSession(newSession);
@@ -440,44 +264,21 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
       let usePFS = false;
 
       if (pfsInitialized) {
-        // Use PFS encryption
-        console.log('🔐 Encrypting message with PFS:', {
-          to: contactHandle,
-          contentLength: content.length
-        });
-        
+        console.log('🔐 Encrypting message with PFS');
         const pfsMessage = await PFSIntegration.encryptMessage(contactHandle, content);
         encryptedData = JSON.stringify(pfsMessage);
         usePFS = true;
-        
-        console.log('📤 PFS encrypted message prepared:', {
-          to: contactHandle,
-          tempId,
-          messageNumber: pfsMessage.messageNumber,
-          chainLength: pfsMessage.previousChainLength
-        });
       } else {
-        // Fallback to basic encryption
-        console.log('🔐 Encrypting message with basic crypto:', {
-          to: contactHandle,
-          txKeyPreview: Array.from(session.keys.tx.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(''),
-          contentLength: content.length
-        });
-        
+        console.log('🔐 Encrypting message with basic crypto');
         const encryptedMessage = await SignalCrypto.encrypt(content, session.keys);
         encryptedData = JSON.stringify(encryptedMessage);
-        
-        console.log('📤 Basic encrypted message prepared:', {
-          to: contactHandle,
-          tempId
-        });
       }
       
       webSocketClient.send({
         type: 'message',
         data: {
           receiverHandle: contactHandle,
-          content: '', // No plaintext content
+          content: '',
           messageType: 'text',
           tempId,
           encrypted: true,
@@ -487,7 +288,6 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
         timestamp: Date.now(),
       });
 
-      // Persist to local storage (status: sending)
       try {
         await messageStorage.storeMessage({
           id: tempId,
@@ -495,7 +295,7 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
           senderId: currentUser.handle,
           recipientId: contactHandle,
           encryptedContent: encryptedData,
-          plaintext: content, // Store plaintext for our own message
+          plaintext: content,
           messageType: 'text',
           timestamp: Date.now(),
           status: 'sending'
@@ -510,7 +310,7 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !session) return;
+    if (!newMessage.trim() || !session || newMessage.length > 350) return;
     
     const tempId = `temp_${Date.now()}`;
     const tempMessage: Message = {
@@ -531,20 +331,18 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     await sendEncryptedMessage(tempMessage.content, tempId);
     messageIdsRef.current.add(tempId);
   };
-  
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value.length <= 350) {
+      setNewMessage(value);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setNewMessage(e.target.value);
-  };
-
-  const stopTyping = () => {
-    // Typing indicator logic can be re-added later.
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && newMessage.trim() && newMessage.length <= 350) {
+      sendMessage();
+    }
   };
 
   const scrollToBottom = () => {
@@ -556,122 +354,137 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const getMessageStatusIndicator = (message: Message) => {
-    if (!message.isOwn) return null;
+  const clearChat = async () => {
+    if (!currentUser || isClearing) return;
 
-    if (message.delivered) {
-      return <span className={styles.statusIndicatorMessage}>[c]</span>;
+    setIsClearing(true);
+    try {
+      // Call backend API to clear messages
+      const response = await fetch(`http://79.255.198.124:3001/api/messages/clear`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${currentUser.sessionToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contactHandle
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to clear chat');
+      }
+
+      // Clear local messages
+      await messageStorage.clearMessages(conversationId);
+      
+      // Reset UI state
+      setMessages([]);
+      messageIdsRef.current.clear();
+      setShowClearConfirm(false);
+
+      console.log(`✅ Chat cleared with ${contactHandle}`);
+
+    } catch (error) {
+      console.error('❌ Failed to clear chat:', error);
+      alert('Failed to clear chat. Please try again.');
+    } finally {
+      setIsClearing(false);
     }
-    
-    return null;
-  };
-
-  const getConnectionStatusColor = () => {
-    if (connectionStatus.reconnecting) return styles.connectionYellow;
-    if (connectionStatus.connected && connectionStatus.authenticated) return styles.connectionGreen;
-    return styles.connectionRed;
-  };
-
-  const getConnectionStatusText = () => {
-    if (connectionStatus.reconnecting) return 'Reconnecting...';
-    if (connectionStatus.connected && connectionStatus.authenticated) {
-      return 'Connected';
-    }
-    return 'Disconnected';
   };
 
   return (
     <div className={styles.container}>
-      {/* Header */}
-      {!minimal && (
       <div className={styles.header}>
-        <div>
-          <h3 className={styles.headerTitle}>
-            {contactHandle}
-          </h3>
-          <div className={styles.connectionStatus}>
-            <p className={`${styles.statusText} ${getConnectionStatusColor()}`}>
-              {getConnectionStatusText()}
-            </p>
-            {pfsInitialized && (
-              <span className={`${styles.statusIndicator} ${styles.pfsActive}`}>
-                🔒 PFS Active
-              </span>
-            )}
-            {session && !pfsInitialized && (
-              <span className={`${styles.statusIndicator} ${styles.basicE2ee}`}>
-                🔒 E2EE (Basic)
-              </span>
-            )}
-            {!session && (
-              <span className={`${styles.statusIndicator} ${styles.noE2ee}`}>
-                🔓 No E2EE
-              </span>
-            )}
-          </div>
-          {encryptionError && (
-            <p className={styles.errorText}>{encryptionError}</p>
-          )}
-        </div>
+        <button onClick={onClose} className={styles.backButton}>
+          ←
+        </button>
+        <button 
+          onClick={() => setShowClearConfirm(true)} 
+          className={styles.clearButton}
+          title="Clear chat"
+          disabled={isClearing}
+        >
+          🗑️
+        </button>
       </div>
-      )}
 
-      {/* Messages */}
-      <div className={styles.messagesContainer}>
-        {messages.map((msg, index) => (
-          <div
-            key={msg.id || index}
-            className={`${styles.messageWrapper} ${msg.isOwn ? styles.messageWrapperOwn : styles.messageWrapperOther}`}
-          >
-            <div className={`${styles.messageBubble} ${msg.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther}`}>
-              <p className={styles.messageContent}>{msg.content}</p>
-              <div className={`${styles.messageFooter} ${msg.isOwn ? styles.messageFooterOwn : styles.messageFooterOther}`}>
-                <span className={styles.timestamp}>{formatTimestamp(msg.timestamp)}</span>
-                {getMessageStatusIndicator(msg)}
-              </div>
+      {/* Clear confirmation modal */}
+      {showClearConfirm && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h3>Clear Chat</h3>
+            <p>Are you sure you want to delete all messages with {contactHandle}? This action cannot be undone.</p>
+            <div className={styles.modalActions}>
+              <button 
+                onClick={() => setShowClearConfirm(false)}
+                className={styles.cancelButton}
+                disabled={isClearing}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={clearChat}
+                className={styles.clearConfirmButton}
+                disabled={isClearing}
+              >
+                {isClearing ? 'Clearing...' : 'Clear Chat'}
+              </button>
             </div>
           </div>
-        ))}
+        </div>
+      )}
+
+      {/* Messages Container */}
+      <div className={styles.messagesContainer}>
+        {messages.length === 0 ? (
+          <div className={styles.emptyMessages}>
+            <p>No messages yet</p>
+          </div>
+        ) : (
+          <div className={styles.messagesList}>
+            {messages.map((msg, index) => (
+              <div key={msg.id || index} className={`${styles.messageWrapper} ${msg.isOwn ? styles.own : styles.other}`}>
+                <div
+                  className={`${styles.messageBubble} ${msg.isOwn ? styles.own : styles.other}`}
+                >
+                  <p className={styles.messageText}>{msg.content}</p>
+                  <p className={styles.messageTime}>
+                    {formatTimestamp(msg.timestamp)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className={styles.inputContainer}>
-        <div className={styles.inputWrapper}>
-          <textarea
+      {/* Message Input */}
+      <div className={styles.messageInputSection}>
+        <div className={styles.inputContainer}>
+          <input
+            type="text"
             value={newMessage}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            placeholder={
-              !connectionStatus.authenticated
-                ? 'Disconnected...'
-                : !session
-                  ? 'Establishing encryption...'
-                  : 'Type a message...'
-            }
-            rows={1}
-            className={styles.textInput}
-            disabled={!connectionStatus.authenticated || !session}
+            className={styles.messageInput}
+            placeholder=""
           />
           <button
             onClick={sendMessage}
-            disabled={!newMessage.trim() || !connectionStatus.authenticated || !session}
-            className="absolute top-1/2 right-3 -translate-y-1/2 flex items-center justify-center w-9 h-9 
-                       bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full shadow-md hover:brightness-110 active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed
-                       focus:outline-none focus:ring-2 focus:ring-blue-400"
-            aria-label="Send Message"
+            disabled={!newMessage.trim() || newMessage.length > 350}
+            className={styles.sendButton}
+            title="Send message"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-4 h-4"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
+            →
           </button>
+          {/* Character Counter */}
+          <div className={`${styles.charCounter} ${newMessage.length > 300 ? styles.warning : ''} ${newMessage.length >= 350 ? styles.error : ''}`}>
+            {newMessage.length}/350
+          </div>
+          {/* Cursor line - only show when input is empty */}
+          {!newMessage && <div className={styles.cursor}></div>}
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { getContacts, addContact, deleteContact } from './handlers/contacts';
+import { getContacts, addContact, deleteContact, updateContact } from './handlers/contacts';
 import { authenticateToken } from '../middleware/auth';
 
 export async function contactRoutes(fastify: FastifyInstance) {
@@ -9,6 +9,7 @@ export async function contactRoutes(fastify: FastifyInstance) {
 
     instance.get('/', getContacts);
     instance.post('/', addContact);
+    instance.put('/', updateContact);
     instance.delete('/:handle', deleteContact);
   });
 } 

@@ -60,12 +60,14 @@ export default defineConfig({
     sourcemap: true,
   },
   server: {
+    host: '0.0.0.0',
+    port: 5173,
     fs: {
       allow: ['..']
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://79.255.198.124:3001',
         changeOrigin: true,
         secure: false,
       },

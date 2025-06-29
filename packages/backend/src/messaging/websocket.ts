@@ -12,7 +12,7 @@ interface AuthenticatedSocket {
 }
 
 interface WebSocketMessage {
-  type: 'message' | 'typing' | 'heartbeat' | 'auth';
+  type: 'message' | 'typing' | 'heartbeat' | 'auth' | 'contact_added';
   data: any;
   timestamp: number;
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { sendHeartbeat as apiSendHeartbeat, logout as apiLogout } from '../../../lib/api/sessionApi';
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = 'http://79.255.198.124:3001';
 
 interface SessionState {
   sessionId: string;

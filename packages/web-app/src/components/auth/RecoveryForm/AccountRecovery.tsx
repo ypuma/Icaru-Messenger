@@ -3,7 +3,7 @@ import * as bip39 from 'bip39';
 import { deriveKeyPairFromMnemonic } from '../../../lib/crypto/account';
 import { Buffer } from 'buffer';
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = 'http://79.255.198.124:3001';
 
 interface RecoveryAttempt {
   timestamp: number;
