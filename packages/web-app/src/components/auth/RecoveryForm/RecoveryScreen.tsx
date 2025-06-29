@@ -4,7 +4,7 @@ import * as bip39 from "bip39";
 import { deriveKeyPairFromMnemonic } from "../../../lib/crypto/account";
 import { Buffer } from "buffer";
 
-const API_BASE_URL = "https://0.0.0.0:11401";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://0.0.0.0:11401";
 
 interface RecoveryScreenProps {
   onBack: () => void;

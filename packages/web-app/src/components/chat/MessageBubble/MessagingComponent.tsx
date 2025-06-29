@@ -11,6 +11,8 @@ import type { RatchetState } from '@secure-messenger/shared';
 import { browserStorage } from '../../../lib/storage/browserStorage';
 import styles from './MessagingComponent.module.scss';
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://0.0.0.0:11401';
+
 // Define crypto types to match our updated signalCrypto implementation
 interface KeyPair {
   publicKey: string;
@@ -360,7 +362,7 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     setIsClearing(true);
     try {
       // Call backend API to clear messages
-      const response = await fetch(`https://0.0.0.0:11401/api/messages/clear`, {
+      const response = await fetch(`${BASE_URL}/api/messages/clear`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${currentUser.sessionToken}`,

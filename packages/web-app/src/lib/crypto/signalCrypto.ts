@@ -3,6 +3,8 @@ import { toB64, fromB64 } from '../utils/base64';
 import { PerfectForwardSecrecy } from './perfectForwardSecrecy';
 import type { RatchetState, EphemeralKeys } from '@secure-messenger/shared';
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://0.0.0.0:11401';
+
 // Define interfaces for our E2EE system
 interface KeyPair {
   publicKey: string;
@@ -188,7 +190,7 @@ export class SignalCrypto {
   ): Promise<Session> {
     console.log('🔄 Establishing session with:', partnerHandle);
     
-    const response = await fetch(`https://0.0.0.0:11401/api/keys/bundle/${encodeURIComponent(partnerHandle)}`, {
+    const response = await fetch(`${BASE_URL}/api/keys/bundle/${encodeURIComponent(partnerHandle)}`, {
       headers: { 
         'Authorization': `Bearer ${authToken}`,
       }

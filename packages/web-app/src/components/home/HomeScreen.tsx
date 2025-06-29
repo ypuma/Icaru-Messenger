@@ -4,6 +4,8 @@ import styles from "./HomeScreen.module.scss";
 import { useState, useEffect } from "react";
 import { updateContactNickname } from "../../lib/api/contactApi";
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://0.0.0.0:11401';
+
 interface Contact {
   id: string;
   handle: string;
@@ -41,7 +43,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
       const sessionData = localStorage.getItem('secmes_current_session');
       if (!sessionData) return;
       const { token } = JSON.parse(sessionData);
-      const response = await fetch(`https://0.0.0.0:11401/api/contacts`, {
+      const response = await fetch(`${BASE_URL}/api/contacts`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

@@ -7,6 +7,8 @@ import {
 } from "../../../lib/crypto/account";
 import { Buffer } from 'buffer';
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://0.0.0.0:11401';
+
 interface RegistrationScreenProps {
   onBack: () => void;
   onContinue: (userData: { handle: string; publicKey: string; privateKey: string; }) => void;
@@ -147,7 +149,7 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onBack, onConti
       
       console.log('Sending to backend:', registrationData);
       
-      const res = await fetch('https://0.0.0.0:11401/api/auth/register', {
+      const res = await fetch(`${BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(registrationData)

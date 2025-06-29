@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { sendHeartbeat as apiSendHeartbeat, logout as apiLogout } from '../../../lib/api/sessionApi';
 
-const API_BASE_URL = 'https://0.0.0.0:11401';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://0.0.0.0:11401';
 
 interface SessionState {
   sessionId: string;
