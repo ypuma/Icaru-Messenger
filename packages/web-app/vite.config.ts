@@ -65,13 +65,7 @@ export default defineConfig({
     fs: {
       allow: ['..']
     },
-    proxy: {
-      '/api': {
-        target: 'https://0.0.0.0:11401',
-        changeOrigin: true,
-        secure: false,
-      },
-    },
+    // Removed proxy since using nginx reverse proxy
     allowedHosts: [
       'test.mendes.dev',
       'icaru.systems',
