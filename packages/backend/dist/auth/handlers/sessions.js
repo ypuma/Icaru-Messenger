@@ -35,10 +35,10 @@ const createSession = async (request, reply) => {
             const allUsers = await db_1.default.user.findMany({
                 select: { handle: true }
             });
-            logger_1.logger.info(`User not found. All users in database: ${JSON.stringify(allUsers.map((u) => u.handle))}`);
+            logger_1.logger.info(`Benutzer nicht gefunden. All users in database: ${JSON.stringify(allUsers.map((u) => u.handle))}`);
             return reply.status(404).send({
-                error: 'User not found',
-                message: 'No user found with this handle'
+                error: 'Benutzer nicht gefunden',
+                message: 'Kein Benutzer mit der Handle gefunden'
             });
         }
         // Check for existing active sessions and invalidate them

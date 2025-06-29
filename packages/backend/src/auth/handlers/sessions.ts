@@ -49,11 +49,11 @@ export const createSession = async (
       const allUsers = await prisma.user.findMany({
         select: { handle: true }
       });
-      logger.info(`User not found. All users in database: ${JSON.stringify(allUsers.map((u: any) => u.handle))}`);  
+      logger.info(`Benutzer nicht gefunden. All users in database: ${JSON.stringify(allUsers.map((u: any) => u.handle))}`);  
       
       return reply.status(404).send({
-        error: 'User not found',
-        message: 'No user found with this handle'
+        error: 'Benutzer nicht gefunden',
+        message: 'Kein Benutzer mit der Handle gefunden found with this handle'
       });
     }
 

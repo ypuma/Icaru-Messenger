@@ -276,8 +276,8 @@ async function getAccount(request, reply) {
         });
         if (!user) {
             return reply.status(404).send({
-                error: 'User not found',
-                message: 'No user found with the specified handle'
+                error: 'Benutzer nicht gefunden',
+                message: 'Kein Benutzer mit der Handle gefunden found with the specified handle'
             });
         }
         return reply.send({
@@ -327,8 +327,8 @@ async function deleteAccount(request, reply) {
         console.error('Failed to delete account:', error);
         if (error instanceof Error && error.message.includes('Record to delete does not exist')) {
             return reply.status(404).send({
-                error: 'Account not found',
-                message: 'No account found with the specified handle'
+                error: 'Konto nicht gefunden',
+                message: 'Kein Konto mit der Handle gefunden'
             });
         }
         return reply.status(500).send({
@@ -412,8 +412,8 @@ async function lookupAccountByPublicKey(request, reply) {
         }
         if (!user) {
             return reply.status(404).send({
-                error: 'Account not found',
-                message: 'No account found with this public key'
+                error: 'Konto nicht gefunden',
+                message: 'Kein Konto mit diesem öffentlichen Schlüssel gefunden'
             });
         }
         return reply.send({

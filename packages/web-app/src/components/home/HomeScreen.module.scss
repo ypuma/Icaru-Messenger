@@ -236,18 +236,18 @@
   gap: 0.5rem;
   margin-bottom: 0.125rem;
 }
-
-.contactName {
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: #000000;
+  
+  .contactName {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #000000;
   flex: 1;
-}
-
-.contactHandle {
-  font-size: 0.75rem;
-  color: #6b7280;
-  font-weight: 400;
+  }
+  
+  .contactHandle {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 400;
 }
 
 .editButton {
@@ -398,4 +398,93 @@
   font-weight: 500;
   margin-bottom: 0.25rem;
   text-align: center;
+}
+
+// Modal styles
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modalContent {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90vw;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  font-family: 'SF Pro Rounded', sans-serif;
+  
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #000000;
+    margin: 0 0 1rem 0;
+    text-align: center;
+  }
+  
+  p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0 0 2rem 0;
+    text-align: center;
+    line-height: 1.5;
+  }
+}
+
+.modalActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 0.75rem;
+  font-family: 'SF Pro Rounded', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  
+  &:hover {
+    background: #e5e7eb;
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.logoutConfirmButton {
+  padding: 0.75rem 1.5rem;
+  background: #dc2626;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.75rem;
+  font-family: 'SF Pro Rounded', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  
+  &:hover {
+    background: #b91c1c;
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
 } 

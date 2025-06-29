@@ -32,7 +32,7 @@ const addContact = async (request, reply) => {
         if (!contactUser) {
             return reply.status(404).send({
                 error: 'Not Found',
-                message: 'User not found'
+                message: 'Benutzer nicht gefunden'
             });
         }
         if (contactUser.id === userId) {
@@ -218,7 +218,7 @@ const deleteContact = async (request, reply) => {
         if (!contactUser) {
             return reply.status(404).send({
                 error: 'Not Found',
-                message: 'Contact user not found'
+                message: 'Contact Benutzer nicht gefunden'
             });
         }
         // Find and delete the contact relationship

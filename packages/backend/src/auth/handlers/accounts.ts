@@ -293,8 +293,8 @@ export async function getAccount(
 
     if (!user) {
       return reply.status(404).send({
-        error: 'User not found',
-        message: 'No user found with the specified handle'
+        error: 'Benutzer nicht gefunden',
+        message: 'Kein Benutzer mit der Handle gefunden found with the specified handle'
       });
     }
 
@@ -354,8 +354,8 @@ export async function deleteAccount(
     
     if (error instanceof Error && error.message.includes('Record to delete does not exist')) {
       return reply.status(404).send({
-        error: 'Account not found',
-        message: 'No account found with the specified handle'
+        error: 'Konto nicht gefunden',
+        message: 'Kein Konto mit der Handle gefunden'
       });
     }
     
@@ -454,8 +454,8 @@ export async function lookupAccountByPublicKey(
 
     if (!user) {
       return reply.status(404).send({ 
-        error: 'Account not found',
-        message: 'No account found with this public key'
+        error: 'Konto nicht gefunden',
+        message: 'Kein Konto mit diesem öffentlichen Schlüssel gefunden'
       });
     }
 

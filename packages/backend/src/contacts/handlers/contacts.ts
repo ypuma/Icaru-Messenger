@@ -35,7 +35,7 @@ export const addContact = async (
     if (!contactUser) {
       return reply.status(404).send({
         error: 'Not Found',
-        message: 'User not found'
+        message: 'Benutzer nicht gefunden'
       });
     }
 

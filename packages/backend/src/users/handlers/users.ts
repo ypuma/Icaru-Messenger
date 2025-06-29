@@ -20,7 +20,7 @@ export async function getUserByHandle(
     });
 
     if (!user) {
-      return reply.code(404).send({ message: 'User not found' });
+      return reply.code(404).send({ message: 'Benutzer nicht gefunden' });
     }
 
     return reply.send(user);
@@ -52,7 +52,7 @@ export const getPreKeyBundle = async (
     if (!user) {
       return reply.status(404).send({
         error: 'Not Found',
-        message: 'User not found'
+        message: 'Benutzer nicht gefunden'
       });
     }
 

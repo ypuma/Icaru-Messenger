@@ -21,6 +21,7 @@ const RecoveryScreen: React.FC<RecoveryScreenProps> = ({ onBack, onRecovered }):
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rateLimited, setRateLimited] = useState(false);
+  const [pasting, setPasting] = useState(false);
 
   // Rate-limit constants (client fallback)
   const MAX_ATTEMPTS_PER_HOUR = 3;
@@ -67,14 +68,47 @@ const RecoveryScreen: React.FC<RecoveryScreenProps> = ({ onBack, onRecovered }):
     setError(null);
   };
 
-  // Paste entire recovery phrase from clipboard
-  const handlePaste = async () => {
+  // Handle paste event on input fields
+  const handleInputPaste = async (e: React.ClipboardEvent<HTMLInputElement>) => {
     if (loading || rateLimited) return;
 
     try {
+      const pastedText = e.clipboardData.getData('text');
+      if (!pastedText) return;
+
+      const words = pastedText.trim().toLowerCase().split(/\s+/);
+
+      // If it looks like a full recovery phrase (12 words), process it
+      if (words.length === 12) {
+        e.preventDefault(); // Prevent normal paste behavior
+        
+        if (!bip39.validateMnemonic(words.join(" "))) {
+          setError("Ungültige Wiederherstellungsphrase.");
+          return;
+        }
+
+        setRecoveryWords(words);
+        setError(null);
+      }
+      // Otherwise, let normal paste behavior happen for single words
+    } catch (err) {
+      console.error("Fehlgeschlagen, Wiederherstellungsphrase automatisch einzufügen:", err);
+      // Don't show error for failed auto-paste, let user try manual paste button
+    }
+  };
+
+  // Paste entire recovery phrase from clipboard
+  const handlePaste = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (loading || rateLimited || pasting) return;
+
+    setPasting(true);
+    try {
       const text = await navigator.clipboard.readText();
       if (!text) {
-        setError("Fehlgeschlagen, Wiederherstellungsphrase einzufügen. Bitte fügen Sie sie manuell ein.");
+        setError("Keine Wiederherstellungsphrase in der Zwischenablage gefunden.");
         return;
       }
 
@@ -86,7 +120,7 @@ const RecoveryScreen: React.FC<RecoveryScreenProps> = ({ onBack, onRecovered }):
       }
 
       if (!bip39.validateMnemonic(words.join(" "))) {
-        setError("Invalid recovery phrase.");
+        setError("Ungültige Wiederherstellungsphrase.");
         return;
       }
 
@@ -94,7 +128,9 @@ const RecoveryScreen: React.FC<RecoveryScreenProps> = ({ onBack, onRecovered }):
       setError(null);
     } catch (err) {
       console.error("Fehlgeschlagen, Wiederherstellungsphrase einzufügen:", err);
-      setError("Fehlgeschlagen, Wiederherstellungsphrase einzufügen. Bitte fügen Sie sie manuell ein.");
+      setError("Fehlgeschlagen, Wiederherstellungsphrase einzufügen. Stellen Sie sicher, dass Sie eine 12-Wort-Phrase kopiert haben.");
+    } finally {
+      setPasting(false);
     }
   };
 
@@ -156,7 +192,12 @@ const RecoveryScreen: React.FC<RecoveryScreenProps> = ({ onBack, onRecovered }):
 
   return (
     <div className={styles["registration-root"]}>
-      <div className={styles["recovery-label"]}>Wiederherstellungsphrase eingeben</div>
+      <div className={styles["recovery-label"]}>
+        Wiederherstellungsphrase eingeben
+        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' }}>
+          Tipp: Kopieren Sie Ihre 12-Wort-Phrase und drücken Sie Strg+V in einem beliebigen Feld
+        </div>
+      </div>
       <div className={styles["recovery-grid"]}>
         {recoveryWords.map((word, idx) => (
           <input
@@ -168,6 +209,8 @@ const RecoveryScreen: React.FC<RecoveryScreenProps> = ({ onBack, onRecovered }):
             placeholder={`${idx + 1}`}
             disabled={loading || rateLimited}
             autoComplete="off"
+            autoFocus={idx === 0}
+            onPaste={handleInputPaste}
           />
         ))}
       </div>
@@ -175,11 +218,14 @@ const RecoveryScreen: React.FC<RecoveryScreenProps> = ({ onBack, onRecovered }):
         className={styles["copy-btn"]}
         onClick={handlePaste}
         type="button"
-        aria-label="Paste Recovery Phrase"
-        style={{ marginTop: "1rem" }}
-        disabled={loading || rateLimited}
+        style={{ 
+          marginTop: "1rem",
+          opacity: pasting ? 0.7 : 1,
+          cursor: (loading || rateLimited || pasting) ? 'not-allowed' : 'pointer'
+        }}
+        disabled={loading || rateLimited || pasting}
       >
-        EINFÜGEN
+        {pasting ? 'FÜGE EIN...' : 'EINFÜGEN'}
       </button>
       {error && (
         <p className="text-red-500 text-center mb-4 max-w-xl mx-auto">{error}</p>

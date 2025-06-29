@@ -32,6 +32,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
   const [editNicknameValue, setEditNicknameValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Fetch contacts on mount
   useEffect(() => {
@@ -191,7 +192,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
         <div className={styles.handleBadge}>{handle}</div>
         <button
           type="button"
-          onClick={onLogout}
+          onClick={() => setShowLogoutConfirm(true)}
           aria-label="Abmelden"
           className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg shadow transition-transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-400"
         >
@@ -364,6 +365,33 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
           >
             {isSubmitting ? 'Hinzufügen...' : 'Hinzufügen'}
           </button>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Abmelden bestätigen</h3>
+            <p className="text-gray-600 mb-6">Möchten Sie sich wirklich abmelden?</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  onLogout();
+                }}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+              >
+                Abmelden
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -20,7 +20,7 @@ async function getUserByHandle(request, reply) {
             },
         });
         if (!user) {
-            return reply.code(404).send({ message: 'User not found' });
+            return reply.code(404).send({ message: 'Benutzer nicht gefunden' });
         }
         return reply.send(user);
     }
@@ -46,7 +46,7 @@ const getPreKeyBundle = async (request, reply) => {
         if (!user) {
             return reply.status(404).send({
                 error: 'Not Found',
-                message: 'User not found'
+                message: 'Benutzer nicht gefunden'
             });
         }
         // Mock PreKey bundle - in production, this would be generated and stored
