@@ -1,0 +1,1 @@
+// FallbackStorage.ts - Fallback storage for when IndexedDB fails 

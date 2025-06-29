@@ -1,0 +1,59 @@
+{
+  "name": "@secure-messenger/backend",
+  "version": "1.0.0",
+  "description": "Secure Messenger Backend API",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "reset": "curl -X POST -H 'x-admin-secret: dev-secret' http://localhost:3001/api/admin/reset",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx src/db/seeds/index.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.4.0",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/websocket": "^8.3.1",
+    "@prisma/client": "^6.10.1",
+    "@secure-messenger/shared": "file:../shared",
+    "@signalapp/libsignal-client": "^0.75.0",
+    "bcrypt": "^5.1.1",
+    "fastify": "^4.25.2",
+    "jsonwebtoken": "^9.0.2",
+    "libsodium-wrappers": "^0.7.15",
+    "ws": "^8.16.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^8.57.1",
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.6",
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.57.1",
+    "globals": "^13.24.0",
+    "jest": "^29.7.0",
+    "prisma": "^6.10.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.34.1"
+  },
+  "keywords": [
+    "secure-messaging",
+    "signal-protocol",
+    "end-to-end-encryption",
+    "privacy"
+  ],
+  "author": "Secure Messenger Team",
+  "license": "MIT"
+}

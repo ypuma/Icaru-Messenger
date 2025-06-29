@@ -1,0 +1,32 @@
+{
+  "name": "@secure-messenger/shared",
+  "version": "1.0.0",
+  "description": "Shared types and interfaces for Secure Messenger",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix"
+  },
+  "devDependencies": {
+    "@eslint/js": "^8.57.1",
+    "@types/node": "^20.10.6",
+    "@types/ws": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.57.1",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.34.1"
+  },
+  "keywords": [
+    "secure-messaging",
+    "types",
+    "interfaces"
+  ],
+  "author": "Secure Messenger Team",
+  "license": "MIT"
+}

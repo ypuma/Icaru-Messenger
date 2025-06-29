@@ -1,0 +1,60 @@
+{
+  "name": "@secure-messenger/workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Secure Messenger Workspace - Web MVP with Electron Migration Path",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build:shared && npm run build:web && npm run build:backend",
+    "build:shared": "cd packages/shared && npm run build",
+    "build:web": "cd packages/web-app && npm run build",
+    "build:backend": "cd packages/backend && npm run build",
+    "dev": "concurrently \"npm run dev:shared\" \"npm run dev:backend\" \"npm run dev:web\"",
+    "dev:shared": "cd packages/shared && npm run dev",
+    "dev:web": "cd packages/web-app && npm run dev",
+    "dev:backend": "cd packages/backend && npm run dev",
+    "install:all": "npm install && npm run install:packages",
+    "install:packages": "cd packages/shared && npm install && cd ../web-app && npm install && cd ../backend && npm install",
+    "clean": "npm run clean:packages && npm run clean:node-modules",
+    "clean:packages": "cd packages/shared && rm -rf dist node_modules && cd ../web-app && rm -rf dist node_modules && cd ../backend && rm -rf dist node_modules",
+    "clean:node-modules": "rm -rf node_modules",
+    "lint": "npm run lint:shared && npm run lint:web && npm run lint:backend",
+    "lint:shared": "cd packages/shared && npm run lint",
+    "lint:web": "cd packages/web-app && npm run lint",
+    "lint:backend": "cd packages/backend && npm run lint",
+    "test": "npm run test:backend && npm run test:web",
+    "test:backend": "cd packages/backend && npm run test",
+    "test:web": "cd packages/web-app && npm run test",
+    "prepare:electron": "npm run build && npm run setup:electron",
+    "setup:electron": "mkdir -p packages/electron-app && cp -r packages/web-app/dist packages/electron-app/renderer",
+    "electron:init": "cd packages/electron-app && npm init -y && npm install electron --save-dev"
+  },
+  "devDependencies": {
+    "@types/bip39": "^3.0.4",
+    "@types/libsodium-wrappers": "^0.7.14",
+    "concurrently": "^8.2.2",
+    "rimraf": "^5.0.5",
+    "sass-embedded": "^1.89.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "secure-messaging",
+    "signal-protocol",
+    "end-to-end-encryption",
+    "privacy",
+    "electron-ready"
+  ],
+  "author": "Secure Messenger Team",
+  "license": "MIT",
+  "dependencies": {
+    "bip39": "^3.1.0",
+    "ed25519-hd-key": "^1.3.0",
+    "framer-motion": "^12.19.2",
+    "libsodium-wrappers": "^0.7.15"
+  }
+}

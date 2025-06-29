@@ -1,0 +1,181 @@
+// Prisma Schema for Secure Messenger
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id              String    @id @default(cuid())
+  handle          String    @unique
+  publicKey       String
+  privateKey      String?
+  hashedPassword  String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  sessions        Session[]
+  sentMessages    Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  contacts        Contact[] @relation("UserContacts")
+  contactOf       Contact[] @relation("ContactUsers")
+  identity        IdentityKey?
+  signedPreKey    SignedPreKey?
+  oneTimePreKeys  OneTimePreKey[]
+
+  // Relations
+  devices          Device[]
+  backups          RecoveryBackup[]
+
+  @@map("users")
+}
+
+model Device {
+  id              String   @id @default(cuid())
+  userId          String
+  deviceId        String   @unique
+  publicKey       String   @unique
+  registrationId  Int
+  signedPreKeyId  Int
+  signedPreKey    String
+  preKeySignature String
+  identityKey     String
+  lastSeen        DateTime @default(now())
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preKeys  PreKey[]
+  sessions Session[]
+
+  @@map("devices")
+}
+
+model PreKey {
+  id       String @id @default(cuid())
+  deviceId String
+  keyId    Int
+  publicKey String
+  used     Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@unique([deviceId, keyId])
+  @@map("prekeys")
+}
+
+model Session {
+  id            String   @id @default(cuid())
+  userId        String
+  deviceId      String
+  token         String   @unique
+  ipAddress     String?
+  userAgent     String?
+  lastHeartbeat DateTime @default(now())
+  isActive      Boolean  @default(true)
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Contact {
+  id         String   @id @default(cuid())
+  userId     String
+  contactId  String
+  nickname   String?
+  isVerified Boolean  @default(false)
+  isBlocked  Boolean  @default(false)
+  addedAt    DateTime @default(now())
+  verifiedAt DateTime?
+
+  // Relations
+  user    User @relation("UserContacts", fields: [userId], references: [id], onDelete: Cascade)
+  contact User @relation("ContactUsers", fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contactId])
+  @@map("contacts")
+}
+
+model Message {
+  id               String    @id @default(cuid())
+  senderId         String
+  receiverId       String
+  senderDeviceId   String
+  receiverDeviceId String
+  content          String    // Encrypted message content
+  messageType      String @default("TEXT")
+  timestamp        DateTime  @default(now())
+  delivered        Boolean   @default(false)
+  deliveredAt      DateTime?
+  read             Boolean   @default(false)
+  readAt           DateTime?
+  isEdited         Boolean   @default(false)
+  editedAt         DateTime?
+  replyToId        String?
+  metadata         String?   // Additional encrypted metadata
+
+  // Relations
+  sender   User    @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User    @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  replyTo  Message? @relation("MessageReply", fields: [replyToId], references: [id])
+  replies  Message[] @relation("MessageReply")
+
+  @@map("messages")
+}
+
+model RecoveryBackup {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  encryptedBackup String
+  version   Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, version])
+}
+
+model RateLimitEntry {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  count     Int      @default(1)
+  resetTime DateTime
+  createdAt DateTime @default(now())
+
+  @@map("rate_limits")
+}
+
+model IdentityKey {
+  id        String @id @default(cuid())
+  publicKey String
+  userId    String @unique
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SignedPreKey {
+  id        String @id @default(cuid())
+  key       String
+  signature String
+  userId    String @unique
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OneTimePreKey {
+  id        String @id @default(cuid())
+  key       String
+  isUsed    Boolean @default(false)
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+ 

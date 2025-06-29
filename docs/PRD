@@ -1,0 +1,652 @@
+# Secure Messenger PRD (Enhanced Security Refinements)
+## WhatsApp-like Encrypted Messenger with Anonymous Registration
+
+### Executive Summary
+
+**Problem Statement**: Privacy-conscious users lack a truly secure messaging app that combines WhatsApp's simplicity with Signal's security while maintaining complete anonymity and requiring no personal information disclosure.
+
+**Solution**: A web-based secure messenger leveraging Signal Protocol for end-to-end encryption, designed with anonymous username-based registration that protects user identity while maintaining intuitive usability and robust account recovery with comprehensive security safeguards.
+
+**Target Users**: Privacy-conscious consumers who prioritize both secure communication and complete anonymity without requiring technical expertise.
+
+---
+
+## Goals and Objectives
+
+### Primary Goals
+- Provide seamless end-to-end encrypted messaging with zero user friction
+- Enable completely anonymous communication without personal information disclosure
+- Maintain secure media sharing without compromising user identity
+- Ensure zero-knowledge architecture with no personal data server storage
+- Provide secure account recovery without compromising anonymity
+- Support single-device usage with robust session management and security checks
+- Implement comprehensive security safeguards against common attack vectors
+
+### User Goals
+- Create accounts anonymously without revealing personal information
+- Send and receive encrypted messages reliably with realistic expectations
+- Share images securely without compromising quality or privacy
+- Verify contact authenticity through streamlined, secure visual methods
+- Access message history consistently across browser sessions
+- Maintain complete control over personal identity disclosure
+- Recover accounts securely without revealing personal information with comprehensive backup management
+- Understand and control metadata exposure with clear security warnings
+- Operate with confidence through robust security protections and failure handling
+
+### Success Criteria
+- User can complete registration and send first message in under 2 minutes
+- All messages encrypted end-to-end with Signal Protocol verification and session repair capabilities
+- Image sharing functional across mobile and desktop platforms
+- Contact verification process completable by non-technical users in under 30 seconds with replay attack protection
+- Zero personal information required for account creation
+- Account recovery possible through versioned encrypted backup or recovery seed with comprehensive safeguards
+- Application maintains high availability with robust security protections
+
+---
+
+## Target Audience
+
+### Primary Users
+**Privacy-Conscious Professionals**: Journalists, lawyers, activists, and business professionals who require secure communication for sensitive conversations while maintaining source protection and confidential information sharing.
+
+**Security-Minded Consumers**: Individuals who prioritize digital privacy and seek alternatives to mainstream messaging platforms due to data collection concerns and desire for complete anonymity.
+
+**Whistleblowers and Sources**: Individuals who need to communicate sensitive information without revealing their identity or personal details, with robust account recovery options and comprehensive security protections.
+
+### User Characteristics
+- Basic to intermediate technical comfort with web applications
+- Single-device usage patterns (primarily mobile browser or desktop)
+- Value anonymity and privacy over convenience features
+- Require reliable message delivery without identity disclosure
+- Prioritize security over feature richness for core messaging needs
+- Need account recovery options that don't compromise anonymity
+- Require clear security warnings and guidance for safe operation
+
+### Use Case Scenarios
+- **Anonymous Whistleblowing**: Secure communication between sources and journalists with comprehensive backup management
+- **Activist Coordination**: Privacy-focused communication for sensitive organizing with metadata protection and security warnings
+- **Confidential Business**: Anonymous discussions about competitive intelligence with session security
+- **Source Protection**: Journalists protecting confidential sources with secure backup systems and recovery safeguards
+- **Personal Privacy**: Individuals seeking communication free from identity tracking with robust security protections
+- **Sensitive Research**: Academic or investigative work requiring anonymity and data portability with comprehensive safeguards
+
+---
+
+## User Stories and Acceptance Criteria
+
+### Account Management
+
+**US-001: Anonymous Account Creation with Handle Confirmation**
+- **As a** new user **I want to** create an account using a secure random handle with confirmation for similar matches **so that** I can start messaging securely without revealing personal information or being impersonated
+- **Acceptance Criteria:**
+  - Cryptographically secure handle generation using 6-character A-Z and digits 2-9 only
+  - Handle format displayed as chunked (e.g., `ABC-123`) for readability
+  - 3-5 handle suggestions presented for user selection
+  - **Handle Similarity Protection**: When user enters handle manually, show confirmation dialog for handles within 1-2 character difference of existing handles
+  - **Malicious Handle Detection**: Flag potentially confusing handles (e.g., `O00000` vs `000000`) and require explicit confirmation
+  - Handle uniqueness validation with collision detection
+  - Automatic QR code generation for easy identity sharing with nonce protection
+  - No email, phone number, or personal information required
+  - Account creation completes in under 2 minutes total
+
+### Enhanced Account Recovery with Comprehensive Safeguards
+
+**US-002: Secure Account Recovery with Loss Prevention**
+- **As a** user **I want to** recover my account using my recovery seed or encrypted backup with comprehensive safeguards **so that** I can regain access without compromising my anonymity while being protected from common recovery pitfalls
+- **Acceptance Criteria:**
+  - 12-word recovery seed generated using BIP39 wordlist during registration
+  - **Recovery Seed Protection**:
+    - Recovery seed displayed with prominent warnings about security and storage
+    - User must acknowledge recovery seed storage with checkbox confirmation
+    - Periodic reminders (every 30 days) to verify seed backup status
+    - Optional auto-destroy guidance: "Consider destroying this seed after X months if account is no longer needed"
+    - Warning about seed leakage: "If this seed is compromised, immediately create new account"
+  - **Versioned Encrypted Backup System**:
+    - Option to export encrypted backup with user-chosen passphrase
+    - Backup versioning with timestamps and version numbers
+    - Backup mismatch alerts: "This backup is from a different device/time - proceed carefully"
+    - Backup validation before recovery attempt
+  - **Recovery Process Safeguards**:
+    - 12-word recovery seed input with auto-completion and validation
+    - Recovery attempt rate limiting for security (3 attempts per hour)
+    - Clear instructions for both recovery methods with security warnings
+    - Recovery process restores identity keys and handle
+    - **Push Token Cleanup**: Automatic cleanup of orphaned push tokens during recovery
+    - Contact list reconstruction from recovered keys
+    - Warning about potential message history loss during recovery
+    - Clear error messages for invalid recovery attempts with guidance
+    - Option to create new backup after successful recovery
+    - **Session Invalidation**: Recovery invalidates any existing sessions on other devices with heartbeat verification
+
+### Robust Session Management
+
+**US-003: Enhanced Session Management with Heartbeat Protection**
+- **As a** user **I want to** have robust session management with protection against stale sessions **so that** my account remains secure from unauthorized access
+- **Acceptance Criteria:**
+  - **Single Device Policy**: Creating new session automatically invalidates previous device session
+  - **Heartbeat System**: Active sessions must send heartbeat every 60 seconds
+  - **Stale Session Detection**: Sessions without heartbeat for 5 minutes are automatically invalidated
+  - **Parallel Session Prevention**: Database-level constraints prevent multiple active sessions
+  - **Session Lock Checks**: Regular verification that only one session is active per user
+  - Warning when attempting to log in from multiple devices
+  - Secure logout from previous device when logging in elsewhere
+  - Device session management with clear active session indicators
+  - Option to remotely logout from compromised devices using recovery seed
+  - **Session Repair**: Automatic session re-establishment on network reconnection
+  - Clear explanation of why multi-device sync isn't supported
+
+### Core Messaging Functionality with Signal State Management
+
+**US-004: Reliable Message Delivery with Session Repair**
+- **As a** user **I want to** send messages that arrive reliably with automatic recovery from encryption issues **so that** I can have natural conversations without technical interruptions
+- **Acceptance Criteria:**
+  - Messages encrypt and send within 1 second on typical mid-tier devices
+  - Delivery status updates in real-time (sent/delivered/read)
+  - Recipient receives messages within 2 seconds under normal network conditions
+  - Message history loads from local storage within 500ms
+  - Typing indicators show when contacts are composing
+  - Connection status clearly indicated to users
+  - **Signal Protocol State Management**:
+    - Automatic detection of Signal state corruption
+    - Session repair flows for corrupted encryption states
+    - Re-keying flows when session repair fails
+    - Clear user notification during session repair: "Securing connection..."
+    - Fallback to new key exchange if repair fails
+  - Graceful degradation during poor network conditions
+  - Offline message queuing with delivery when connection restored
+
+**US-005: Secure Image Sharing with Enhanced Protection**
+- **As a** user **I want to** share photos privately with comprehensive security protections **so that** visual communication remains secure and anonymous
+- **Acceptance Criteria:**
+  - Image selection from device gallery or camera
+  - Automatic compression to under 2MB while maintaining quality
+  - End-to-end encryption before upload to server
+  - Progressive loading with thumbnail preview
+  - Full image viewing in dedicated interface
+  - Complete metadata stripping (EXIF, location, device info)
+  - **Enhanced Security**: Secure random filename generation to prevent inference attacks
+  - Encrypted storage on server with automatic deletion after 30 days
+  - **Local Data Protection**: Temporary image data cleared from memory after processing
+
+### Contact Discovery and Verification with Replay Protection
+
+**US-006: Handle-Based Contact Discovery with Enhanced Security**
+- **As a** user **I want to** find contacts using their handles with comprehensive protection against typos and attacks **so that** I can connect with people safely while maintaining anonymity
+- **Acceptance Criteria:**
+  - Handle search with exact matching for 6-character A-Z and 2-9 format only
+  - Handle display in chunked format (ABC-123) for readability
+  - **Enhanced Typo Protection**: "Did you mean..." suggestions for common typos (1 character difference)
+  - **Confirmation for Similar Handles**: When adding contact with handle similar to existing contacts, show confirmation dialog
+  - **Malicious Handle Detection**: Flag potentially confusing handles and require explicit confirmation
+  - Handle sharing through text, links, or QR codes
+  - Handle validation to prevent common input errors
+  - Copy-paste friendly handle format for digital sharing
+  - **QR Code Security**: QR codes include nonce and timestamp for replay attack protection
+  - Clear feedback for successful/failed contact additions
+
+**US-007: Streamlined Contact Verification with Replay Protection**
+- **As a** user **I want to** verify contacts through a secure, step-by-step process protected against replay attacks **so that** I can trust conversation security
+- **Acceptance Criteria:**
+  - **Step 1**: Scan contact's identity QR code or enter handle
+  - **Step 2**: Compare 60-digit safety number with contact
+  - **Step 3**: Receive verification badge upon successful comparison
+  - **QR Code Replay Protection**:
+    - QR codes embed nonce and timestamp (valid for 5 minutes)
+    - Challenge-response verification for QR code scanning
+    - Protection against QR code reuse attacks
+    - Clear error message for expired QR codes
+  - Clear visual states: Unverified → Verifying → Verified
+  - Immediate alerts for changed keys with re-verification prompt  
+  - Verification status persistent across sessions
+  - Simple "Compare Safety Numbers" button in chat interface
+  - Warning indicators for unverified contacts in sensitive conversations
+  - Verification process completable in under 30 seconds
+
+### Privacy and Notifications with Token Management
+
+**US-008: Anonymous Push Notifications with Token Cleanup**
+- **As a** user **I want to** receive message notifications privately with proper token management **so that** I'm alerted to new messages without compromising anonymity or leaving orphaned tokens
+- **Acceptance Criteria:**
+  - Push tokens encrypted and stored separately from handles server-side
+  - Notification routing without metadata linking to user identities
+  - Generic notification content: "New message received"
+  - No sender information or message preview in notifications
+  - User control over notification timing and frequency
+  - **Enhanced Token Management**:
+    - Anonymous notification token refresh and management
+    - **Stale Token Cleanup**: Automatic detection and cleanup of orphaned push tokens
+    - **Token Cleanup on Recovery**: Push tokens cleaned up during account recovery
+    - **Token Cleanup on Killswitch**: Push tokens securely deleted during emergency killswitch
+    - Token validation before notification delivery
+    - Grace period for token refresh to prevent service interruption
+  - Option to disable notifications entirely for maximum privacy
+  - Notification delivery without exposing handle or contact relationships
+
+**US-009: Metadata Protection Settings with Security Warnings**
+- **As a** user **I want to** control metadata protection features with clear security warnings **so that** I can make informed privacy decisions without compromising my security
+- **Acceptance Criteria:**
+  - Clear explanation of collected metadata: recipient ID, timestamp, message size
+  - **Default Settings**: Message batching enabled, random delays (5-15 seconds), padding disabled
+  - **Enhanced Security Warnings**:
+    - **Batching Disable Warning**: "Disabling message batching may reveal your messaging patterns. Continue?"
+    - **Padding Disable Warning**: "Disabling message padding may reveal message content types. Continue?"
+    - **Delay Modification Warning**: "Reducing delays below 5 seconds may compromise timing privacy. Continue?"
+  - Toggle for message batching (groups messages for timing correlation protection)
+  - **Adjustable Random Delay Feature**:
+    - Default 5-15 second random delays
+    - User adjustable range 0-60 seconds (with warnings for extreme values)
+    - Maximum limit of 60 seconds with override option for advanced users
+    - Clear explanation of privacy vs usability trade-offs
+  - Toggle for message size padding to normalize sizes
+  - Clear privacy policy explaining minimal metadata handling
+  - User education about metadata risks and protections
+  - Server-side metadata retention policy (maximum 7 days)
+  - Complete transparency about zero data collection policy
+
+### User Experience and Interface with Enhanced Security
+
+**US-010: Intuitive Navigation with Security Protections**
+- **As a** user **I want to** navigate the app effortlessly with built-in security protections **so that** messaging doesn't require learning complex interfaces while maintaining security
+- **Acceptance Criteria:**
+  - Chat list shows recent conversations with encrypted message previews
+  - New conversation creation through handle search with security confirmations
+  - Smooth transitions between conversation list and chat views
+  - Clear visual hierarchy distinguishing sent and received messages
+  - Consistent interface behavior across mobile and desktop
+  - **Enhanced Security Protections**:
+    - **Content Security Policy (CSP)**: Strict CSP headers to prevent XSS attacks
+    - **SameSite Cookies**: All cookies set with SameSite=Strict attribute
+    - **Secure IndexedDB Scoping**: IndexedDB isolated by origin with secure key management
+    - **Memory Protection**: Sensitive data cleared from memory after use
+  - Dark mode support for enhanced privacy and battery life
+  - Accessibility compliance with keyboard navigation support
+
+**US-011: Enhanced Emergency Killswitch with Atomic Deletion**
+- **As a** user **I want to** immediately destroy all local data with comprehensive safeguards **so that** I can protect my privacy in emergency situations with confidence in complete data destruction
+- **Acceptance Criteria:**
+  - **Available Triggers**: Red "Emergency Delete" button in settings menu + triple-tap home button gesture
+  - **Atomic Deletion Process**:
+    - Transaction-based deletion to ensure atomic operation
+    - **Power-Loss Protection**: Deletion state persisted to prevent incomplete wipes
+    - **Verification System**: Cryptographic verification that all data has been wiped
+    - **Secure Memory Wiping**: Multiple-pass overwrite of cryptographic material in memory
+  - **Comprehensive Data Destruction**:
+    - Immediate deletion of all local messages, keys, and contact data
+    - **Push Token Cleanup**: Secure deletion of push tokens from server
+    - IndexedDB database destruction with verification
+    - Cache and temporary file cleanup
+    - Service worker data clearing
+  - **Killswitch Failure Handling**:
+    - Retry mechanism for failed deletion attempts
+    - Partial deletion recovery and completion
+    - Clear indication of deletion status and any failures
+    - Manual verification tools for successful wipe
+  - Optional server-side account deletion (irreversible)
+  - Confirmation dialog with clear consequences explained
+  - Complete data destruction within 5 seconds of activation
+  - Clear indication when killswitch operation is complete
+  - No recovery possible after killswitch activation
+
+---
+
+## Functional Requirements
+
+### Authentication and Account Management
+- **Cryptographically Secure Handle Generation**: Random 6-character handles using A-Z and digits 2-9 only
+- **Handle Display**: Chunked format (ABC-123) for improved readability and reduced typos
+- **Enhanced Handle Security**: Similarity detection and confirmation for potential impersonation attempts
+- **Collision Detection**: Advanced uniqueness checking with retry mechanisms
+- **Recovery Seed Generation**: 12-word BIP39 mnemonic with secure entropy and comprehensive warnings
+- **Versioned Encrypted Backup Export**: User-passphrase encrypted account backup with version control
+- **QR Code Generation**: Automatic QR code creation with nonce and timestamp protection
+- **Cryptographic Key Generation**: Client-side Ed25519 identity key creation
+- **Secure Key Storage**: Browser IndexedDB with encryption and secure scoping
+- **Enhanced Session Management**: Heartbeat system with stale session detection and cleanup
+- **Emergency Killswitch**: Atomic secure data destruction with comprehensive safeguards
+
+### Core Messaging Engine with State Management
+- **Signal Protocol Implementation**: X3DH key exchange and Double Ratchet encryption with state management
+- **Signal State Corruption Handling**: Automatic detection and repair of corrupted encryption states
+- **Session Repair Flows**: Comprehensive session recovery mechanisms
+- **Re-keying Flows**: Automatic re-keying when session repair fails
+- **Real-time Communication**: WebSocket connections with automatic reconnection and heartbeat
+- **Message Status Tracking**: Comprehensive delivery and read receipt system
+- **Forward Secrecy**: Automatic key rotation every 100 messages or weekly
+- **Message Persistence**: Encrypted local storage with synchronization capabilities
+- **Enhanced Metadata Protection**: Default message batching and configurable random delays with security warnings
+- **Offline Capability**: Message queuing and synchronization when connection restored
+
+### Contact Discovery and Management with Security Enhancements
+- **Handle Search**: Exact matching with enhanced typo detection and security confirmations
+- **Handle Validation**: Input validation with similarity warnings and malicious handle detection
+- **QR Code System**: Primary method for contact discovery with replay attack protection
+- **QR Code Scanner**: Built-in camera integration with nonce verification
+- **Contact Verification**: Streamlined 3-step verification process with replay protection
+- **Anonymous Contact Sharing**: Secure handle sharing through multiple methods
+- **Contact Organization**: Simple contact management without personal data collection
+- **Verification Status**: Clear indicators for verified and unverified contacts
+
+### Privacy and Security Features with Comprehensive Protections
+- **Anonymous Push Notifications**: Encrypted token storage with comprehensive token management
+- **Enhanced Token Management**: Automatic cleanup of orphaned and stale tokens
+- **Default Metadata Protection**: Message batching enabled, 5-15 second random delays, padding optional with security warnings
+- **Key Verification**: QR code scanning with replay protection and safety number comparison
+- **Emergency Killswitch**: Atomic deletion with button and gesture triggers
+- **Enhanced Session Management**: Heartbeat verification with stale session cleanup
+- **Data Retention**: Automatic deletion policies for server-side data (7 days maximum)
+- **Security Protections**: CSP, SameSite cookies, secure IndexedDB scoping, and memory protection
+
+---
+
+## Technical Specifications
+
+### Technology Stack
+
+#### Frontend Architecture
+```javascript
+// Core Framework
+- React 18 with TypeScript for type safety
+- Next.js 15 using App Router for modern routing
+- Tailwind CSS with Shadcn UI components
+- Zustand for lightweight state management
+
+// Security and Communication
+- @signalapp/libsignal-client for encryption protocols
+- Socket.io-client for real-time messaging with heartbeat
+- crypto-js for additional cryptographic operations
+- bip39 for recovery seed generation
+- qrcode.js for identity QR code generation with nonce
+- qr-scanner for QR code reading with replay protection
+
+// Storage and Performance
+- IndexedDB for encrypted local data persistence with secure scoping
+- Service Worker for offline functionality and PWA features
+- Web Push API for anonymous notification delivery with token management
+```
+
+#### Backend Infrastructure
+```javascript
+// Server Framework
+- Node.js 20 with TypeScript
+- Fastify web framework with security headers
+- Socket.io for WebSocket management with heartbeat
+- Prisma ORM with PostgreSQL database
+
+// Security Implementation
+- @signalapp/libsignal-protocol-node
+- JSON Web Tokens with RS256 for authentication
+- Argon2 for secure password hashing
+- Rate limiting middleware for API protection with enhanced limits
+
+// Supporting Services
+- Redis for session and cache management with heartbeat tracking
+- Sharp for server-side image optimization
+- S3-compatible storage for encrypted media with secure cleanup
+```
+
+### Database Architecture
+
+```sql
+-- Anonymous user account management with uppercase handles
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  handle CHAR(6) UNIQUE NOT NULL, -- A-Z, 2-9 format only
+  display_name VARCHAR(100),
+  avatar_url TEXT,
+  public_key TEXT NOT NULL,
+  registration_id INTEGER NOT NULL,
+  qr_code_data TEXT NOT NULL,
+  encrypted_backup_data TEXT, -- Optional encrypted backup
+  backup_version INTEGER DEFAULT 1, -- Versioned backups
+  last_backup_date TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  last_active TIMESTAMP DEFAULT NOW(),
+  
+  CONSTRAINT handle_format_check CHECK (
+    handle ~ '^[A-Z2-9]{6}$'
+  )
+);
+
+-- Anonymous push notification tokens with enhanced management
+CREATE TABLE push_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  encrypted_token TEXT NOT NULL,
+  user_key_hash TEXT NOT NULL, -- Hashed reference, not direct user_id
+  created_at TIMESTAMP DEFAULT NOW(),
+  last_used TIMESTAMP DEFAULT NOW(),
+  expires_at TIMESTAMP DEFAULT NOW() + INTERVAL '30 days',
+  is_active BOOLEAN DEFAULT TRUE,
+  -- Index for stale token cleanup
+  INDEX idx_stale_tokens (last_used, is_active)
+);
+
+-- Encrypted message storage with metadata protection options
+CREATE TABLE messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sender_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  recipient_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  encrypted_content TEXT NOT NULL,
+  media_url TEXT,
+  message_type VARCHAR(20) DEFAULT 'text',
+  size_bytes INTEGER, -- For padding analysis
+  created_at TIMESTAMP DEFAULT NOW(),
+  -- Server-side retention: auto-delete after 7 days
+  expires_at TIMESTAMP DEFAULT NOW() + INTERVAL '7 days'
+);
+
+-- Enhanced Signal Protocol session management with heartbeat
+CREATE TABLE device_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  device_id TEXT NOT NULL,
+  session_data JSONB NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  last_heartbeat TIMESTAMP DEFAULT NOW(),
+  is_active BOOLEAN DEFAULT TRUE,
+  session_state VARCHAR(20) DEFAULT 'active', -- active, corrupted, repairing
+  -- Only one active session per user
+  UNIQUE(user_id, is_active) WHERE is_active = TRUE
+);
+
+-- Contact relationships with verification status
+CREATE TABLE contacts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  contact_user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  verified BOOLEAN DEFAULT FALSE,
+  verification_date TIMESTAMP,
+  verification_nonce TEXT, -- For replay protection
+  added_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id, contact_user_id)
+);
+
+-- QR code nonce tracking for replay protection
+CREATE TABLE qr_nonces (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nonce TEXT UNIQUE NOT NULL,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  expires_at TIMESTAMP DEFAULT NOW() + INTERVAL '5 minutes',
+  used BOOLEAN DEFAULT FALSE
+);
+```
+
+### Security Implementation
+
+#### Enhanced Encryption Architecture
+- **Identity Keys**: Ed25519 key pairs generated client-side for user identity  
+- **Recovery Seeds**: 12-word BIP39 mnemonic phrases with 128-bit entropy and comprehensive protection
+- **Versioned Encrypted Backups**: AES-256-GCM encryption with user-derived keys and version control
+- **Key Exchange**: X3DH protocol for secure initial key agreement between users
+- **Message Encryption**: Double Ratchet algorithm with state corruption detection and repair
+- **Media Encryption**: AES-256-GCM for individual file encryption with unique keys
+- **Transport Security**: TLS 1.3 for all client-server communications
+- **Enhanced Metadata Protection**: Configurable message batching and random timing delays with security warnings
+
+#### Privacy Protection Measures with Comprehensive Safeguards
+- **Zero-Knowledge Server**: No plaintext message content stored server-side
+- **Anonymous Registration**: No personal information collection with handle similarity protection
+- **Minimal Metadata**: Only essential routing information retained (max 7 days)
+- **Enhanced Push Token Management**: Encrypted storage with automatic stale token cleanup
+- **Client-Side Processing**: All encryption and decryption performed on user devices
+- **Secure Local Storage**: IndexedDB with CSP protection and secure scoping
+- **Automatic Key Rotation**: Regular key updates with session repair capabilities
+- **Zero Data Collection**: No analytics, monitoring, or instrumentation
+
+#### Handle System Design with Security Enhancements
+- **Format**: 6 characters using A-Z and digits 2-9 only (excludes 0, 1 for clarity)
+- **Display Format**: Chunked as ABC-123 for improved readability
+- **Enhanced Security**: Similarity detection and confirmation for potential impersonation
+- **Generation**: Cryptographically secure random generation
+- **Collision Resistance**: Over 2.1 billion possible combinations (36^6)
+- **Typo Protection**: Levenshtein distance checking with security confirmations
+- **Case Sensitivity**: Uppercase only for consistency
+- **Immutable Handles**: Cannot be changed once created for security consistency
+- **Multiple Options**: 3-5 generated suggestions presented to users
+
+#### QR Code System with Replay Protection
+- **Identity QR Codes**: Contain handle, public key, nonce, and timestamp
+- **Verification QR Codes**: Separate QR codes for key verification with challenge-response
+- **Replay Protection**: Nonce and timestamp embedding with 5-minute expiration
+- **Offline Functionality**: QR codes work without internet connection for initial exchange
+- **Error Correction**: High redundancy QR codes for reliable scanning
+- **Scanner Integration**: Built-in camera scanning with nonce verification
+
+#### Session Management with Comprehensive Protection
+- **Heartbeat System**: 60-second heartbeat intervals with 5-minute timeout
+- **Stale Session Detection**: Automatic detection and cleanup of inactive sessions
+- **Session State Management**: Tracking of active, corrupted, and repairing session states
+- **Parallel Session Prevention**: Database constraints with heartbeat verification
+- **Session Repair**: Automatic detection and repair of Signal Protocol state corruption
+- **Re-keying Flows**: Fallback re-keying when session repair fails
+
+---
+
+## Security Risk Mitigation
+
+### Handle Security Risks
+- **Impersonation Attacks**: Similarity detection with user confirmation for potentially confusing handles
+- **Typo Exploitation**: Enhanced typo detection with security warnings for similar existing handles
+- **Social Engineering**: Clear warnings when adding contacts with handles similar to existing contacts
+
+### Recovery System Security
+- **Seed Loss Prevention**: Periodic reminders and backup verification with auto-destroy guidance
+- **Seed Leakage Response**: Clear instructions for immediate account migration upon seed compromise
+- **Backup Corruption**: Version control with mismatch detection and recovery options
+- **Recovery Abuse**: Rate limiting and comprehensive logging of recovery attempts
+
+### Session Security Enhancements
+- **Stale Session Attacks**: Heartbeat system with automatic session invalidation
+- **Parallel Session Exploitation**: Database constraints with real-time verification
+- **Session Hijacking**: Comprehensive session state tracking with anomaly detection
+
+### Push Notification Security
+- **Token Orphaning**: Automatic cleanup during recovery and killswitch operations
+- **Stale Token Exploitation**: Regular token validation and cleanup procedures
+- **Notification Correlation**: Anonymous routing with encrypted token storage
+
+### Metadata Protection
+- **Privacy Setting Misuse**: Clear security warnings when disabling protection features
+- **Delay Manipulation**: Sensible limits with override warnings for extreme values
+- **Timing Analysis**: Default protective settings with user education
+
+### QR Code Security
+- **Replay Attacks**: Nonce and timestamp embedding with expiration checking
+- **Code Reuse**: Challenge-response verification for sensitive operations
+- **Social Engineering**: Clear verification process with multiple confirmation steps
+
+### Local Data Protection
+- **Browser Attacks**: CSP headers, SameSite cookies, and secure IndexedDB scoping
+- **Memory Exposure**: Secure memory wiping and data lifecycle management
+- **Storage Attacks**: Encrypted local storage with secure key management
+
+### Killswitch Reliability
+- **Atomic Deletion**: Transaction-based deletion with power-loss protection
+- **Incomplete Wipes**: Verification system with retry mechanisms
+- **Failure Recovery**: Comprehensive error handling and manual verification tools
+
+### Signal Protocol Security
+- **State Corruption**: Automatic detection with repair and re-keying flows
+- **Session Attacks**: Comprehensive state management with security verification
+- **Key Compromise**: Automatic key rotation with anomaly detection
+
+---
+
+## Definition of Done
+
+### Core Functionality Completion
+- [ ] Anonymous user registration with enhanced handle security (similarity detection, malicious handle warnings)
+- [ ] Handle display in chunked format (ABC-123) with confirmation dialogs for similar handles
+- [ ] 12-word recovery seed generation with comprehensive warnings and periodic reminders
+- [ ] Versioned encrypted backup export with mismatch detection and user alerts
+- [ ] Account recovery through seed or backup with enhanced safeguards and push token cleanup
+- [ ] Handle availability checking with enhanced typo detection and security confirmations
+- [ ] QR code generation and scanning with nonce protection and replay attack prevention
+- [ ] End-to-end encrypted messaging with Signal state management and session repair
+- [ ] Real-time message delivery with comprehensive error handling
+- [ ] Image sharing with enhanced security protections and metadata stripping
+- [ ] Streamlined contact verification with replay protection and challenge-response
+- [ ] Anonymous push notifications with comprehensive token management and cleanup
+- [ ] Emergency killswitch with atomic deletion and comprehensive verification
+
+### Security Requirements Met
+- [ ] All messages encrypted using Signal Protocol with state corruption detection and repair
+- [ ] No plaintext message content stored on servers
+- [ ] No personal information collected with enhanced handle similarity protection
+- [ ] Forward secrecy maintained through automatic key rotation and session management
+- [ ] Enhanced session management with heartbeat verification and stale session cleanup
+- [ ] Default metadata protection with security warnings for setting changes
+- [ ] Zero data collection with comprehensive privacy protections
+- [ ] Server-side data retention limits with automatic cleanup procedures
+- [ ] Emergency killswitch with atomic deletion and power-loss protection
+- [ ] QR code replay protection with nonce and timestamp verification
+- [ ] CSP, SameSite cookies, and secure IndexedDB implementation
+- [ ] Comprehensive push token management with automatic cleanup
+
+### Privacy and Anonymity Requirements
+- [ ] Complete anonymity maintained with enhanced security confirmations
+- [ ] Anonymous contact discovery with replay protection and security warnings
+- [ ] Configurable metadata protection with clear security warnings for changes
+- [ ] Anonymous push notification system with comprehensive token management
+- [ ] Recovery options with versioned backups and comprehensive safeguards
+- [ ] Clear privacy policy with enhanced security explanations
+- [ ] Emergency killswitch with specified triggers and verification system
+- [ ] User control over security settings with appropriate warnings and guidance
+
+### User Experience Standards
+- [ ] Complete user journey from registration to messaging under 2 minutes
+- [ ] Contact verification with replay protection completable under 30 seconds
+- [ ] Handle format with security confirmations for similar handles
+- [ ] Enhanced "Did you mean..." with security warnings for potentially malicious handles
+- [ ] Responsive design with comprehensive security protections
+- [ ] Clear error messages and recovery options with security guidance
+- [ ] Enhanced session management with clear user communication
+- [ ] Comprehensive backup management with version control and user guidance
+
+### Technical Security Criteria
+- [ ] Application security with CSP, SameSite cookies, and secure IndexedDB scoping
+- [ ] Signal Protocol state management with automatic repair and re-keying
+- [ ] Enhanced session management with heartbeat system and cleanup
+- [ ] QR code security with nonce protection and replay prevention
+- [ ] Atomic killswitch with comprehensive verification and failure handling
+- [ ] Push token management with automatic cleanup and stale token detection
+- [ ] Metadata protection with configurable settings and security warnings
+- [ ] Recovery system with versioned backups and comprehensive safeguards
+
+### Testing and Quality Assurance
+- [ ] Cross-browser security testing with CSP and cookie protection verification
+- [ ] Mobile device testing with comprehensive security feature validation
+- [ ] Security testing including recovery seed protection and backup versioning
+- [ ] Zero data collection policy verification with comprehensive privacy audit
+- [ ] Metadata protection testing with security warning validation
+- [ ] Contact verification testing with replay protection verification
+- [ ] Handle security testing with similarity detection and confirmation dialogs
+- [ ] Session management testing with heartbeat and stale session cleanup
+- [ ] Push token management testing with comprehensive cleanup verification
+- [ ] Emergency killswitch testing with atomic deletion and verification
+- [ ] Signal Protocol state management testing with
+
+---
+
+All implementation decisions must align with these requirements to ensure successful delivery of a completely private, anonymous messaging platform with maximum security and user control.
