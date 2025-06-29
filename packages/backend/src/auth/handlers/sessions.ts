@@ -101,8 +101,8 @@ export const createSession = async (
             publicKey: user.publicKey, // Use user's public key for device
             registrationId: Math.floor(Math.random() * 16380) + 1, // Random registration ID (1-16383)
             signedPreKeyId: 1,
-            signedPreKey: user.publicKey, // Placeholder - should be actual signed pre-key
-            preKeySignature: "placeholder_signature", // Placeholder - should be actual signature
+            signedPreKey: user.publicKey, 
+            preKeySignature: "",
             identityKey: user.publicKey, // Use user's identity key
             isActive: true
           }

@@ -34,7 +34,7 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onBack, onConti
   React.useEffect(() => {
     // Prevent double execution in StrictMode
     if (generationInProgress.current || hasGenerated.current) {
-      console.log('Account generation skipped - already in progress or completed');
+      console.log('Konto-Generierung übersprungen - bereits in Arbeit oder bereits abgeschlossen');
       return;
     }
     generateAccountData();
@@ -43,7 +43,7 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onBack, onConti
   const generateAccountData = async () => {
     // Double check to prevent race conditions
     if (generationInProgress.current || (hasGenerated.current && handle)) {
-      console.log('Account generation prevented - already in progress or completed');
+      console.log('Konto-Generierung verhindert - bereits in Arbeit oder bereits abgeschlossen');
       return;
     }
 
@@ -73,8 +73,8 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onBack, onConti
       console.log('=== ACCOUNT GENERATION COMPLETE ===');
       
     } catch (err) {
-      console.error('Failed to generate account data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to generate account data');
+      console.error('Fehlgeschlagen, Konto-Generierung:', err);
+      setError(err instanceof Error ? err.message : 'Fehlgeschlagen, Konto-Generierung');
     } finally {
       setLoading(false);
       generationInProgress.current = false;
@@ -101,7 +101,7 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onBack, onConti
         document.body.removeChild(textarea);
       } catch (fallbackErr) {
         console.error("Copy to clipboard failed:", fallbackErr);
-        alert("Failed to copy recovery phrase. Please copy it manually.");
+        alert("Fehlgeschlagen, Wiederherstellungsphrase zu kopieren. Bitte kopieren Sie es manuell.");
         return;
       }
     }
@@ -165,7 +165,7 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onBack, onConti
       
       // Verify the handle matches what we sent
       if (data.handle && data.handle !== handle) {
-        console.warn('Handle mismatch! Sent:', handle, 'Received:', data.handle);
+        console.warn('Handle-Fehler! Gesendet:', handle, 'Empfangen:', data.handle);
       }
       
       // Use our original handle, not the backend response
@@ -182,7 +182,7 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onBack, onConti
       
       console.log('=== REGISTRATION COMPLETE ===');
     } catch (e) {
-      console.error('Registration failed:', e);
+      console.error('Fehlgeschlagen, Registrierung:', e);
       alert((e as Error).message);
     }
   };
@@ -213,7 +213,7 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onBack, onConti
             }} 
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
           >
-            Try Again
+            Erneut versuchen
           </button>
           <button className={styles["back-btn"]} onClick={onBack} type="button" aria-label="Zurück zum Start" style={{marginTop: '1.5rem'}}>
             Zurück
@@ -248,9 +248,9 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onBack, onConti
         style={{marginTop: '0.5rem', marginBottom: '1rem'}}
         disabled={loading || isAnimating}
       >
-        {loading || isAnimating ? "GENERATING..." : "REGENERATE"}
+        {loading || isAnimating ? "GENERIERT..." : "REGENERIEREN"}
       </button>
-      <div className={styles["recovery-label"]}>Ihre Recovery-Phrase</div>
+      <div className={styles["recovery-label"]}>Ihre Wiederherstellungsphrase</div>
       <div className={styles["recovery-grid"]}>
         {recoveryWords.map((word, i) => (
           <div className={styles["recovery-word"]} key={i}>
@@ -268,7 +268,7 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onBack, onConti
         ))}
       </div>
       <button className={styles["copy-btn"]} onClick={handleCopy} type="button" aria-label="Copy Recovery Phrase">
-        {copied ? "COPIED" : "COPY"}
+        {copied ? "KOPIERT" : "KOPIEREN"}
       </button>
       <div className={styles["toggle-row"]}>
         <div
@@ -283,7 +283,7 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onBack, onConti
           <div className={styles["toggle-knob"]} />
         </div>
         <span className={styles["toggle-label"]}>
-          Ich habe mein Recovery-Phrase gesichert
+          Ich habe meine Wiederherstellungsphrase gesichert
         </span>
       </div>
       <button

@@ -161,7 +161,7 @@ class MessageStorage {
    * Decrypt data from storage
    */
   private decryptData(encryptedData: string): string {
-    if (!this.encryptionKey) throw new Error('Encryption key not initialized');
+    if (!this.encryptionKey) throw new Error('Verschlüsselungsschlüssel nicht initialisiert');
     
     const combined = sodium.from_base64(encryptedData);
     const nonce = combined.slice(0, sodium.crypto_secretbox_NONCEBYTES);
@@ -175,7 +175,7 @@ class MessageStorage {
    * Store a message
    */
   async storeMessage(message: Omit<EncryptedMessage, 'createdAt' | 'updatedAt'>): Promise<string> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) throw new Error('Datenbank nicht initialisiert');
 
     const messageId = message.id ?? sodium.to_hex(sodium.randombytes_buf(16));
     const now = Date.now();

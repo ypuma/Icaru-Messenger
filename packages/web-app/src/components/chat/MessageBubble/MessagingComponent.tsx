@@ -80,8 +80,11 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
   const [encryptionError, setEncryptionError] = useState<string>('');
   const [showClearConfirm, setShowClearConfirm] = useState<boolean>(false);
   const [isClearing, setIsClearing] = useState<boolean>(false);
+  const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
+  const [showScrollToBottom, setShowScrollToBottom] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messageIdsRef = useRef<Set<string>>(new Set());
   const pfsInitializedRef = useRef(pfsInitialized);
 
@@ -103,9 +106,15 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     };
   }, [contactHandle]);
 
+  // Smart scroll behavior - only auto-scroll if user is at bottom
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (isAtBottom) {
+      scrollToBottom();
+    } else {
+      // Show scroll to bottom button when new messages arrive and user is scrolled up
+      setShowScrollToBottom(true);
+    }
+  }, [messages, isAtBottom]);
 
   // Refresh messages periodically to pick up messages stored by GlobalMessageService
   useEffect(() => {
@@ -118,13 +127,23 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     return () => clearInterval(refreshInterval);
   }, [session]);
 
+  // Check scroll position on mount and after messages load
+  useEffect(() => {
+    if (messagesContainerRef.current && messages.length > 0) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        checkIfAtBottom();
+      }, 100);
+    }
+  }, [messages.length]);
+
   const initChat = async () => {
     try {
       // Initialize message storage (safe to call multiple times)
       await messageStorage.initialize(currentUser.privateKey);
       await sessionManager.initialize();
       
-      console.log('🔄 Initializing session and PFS for:', contactHandle);
+      console.log('Initializing session and PFS for:', contactHandle);
       const newSession = await sessionManager.getOrCreateSession(contactHandle, currentUser);
       setSession(newSession);
 
@@ -148,24 +167,24 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     if (!sessionToInit) return;
     
     try {
-      console.log('🔄 Initializing Perfect Forward Secrecy for:', contactHandle);
+      console.log('Initializing Perfect Forward Secrecy for:', contactHandle);
       
       const isPfsReady = await PFSIntegration.isPFSInitialized(contactHandle);
       
       if (!isPfsReady) {
         await PFSIntegration.initializePFS(contactHandle, sessionToInit);
-        console.log('✅ PFS initialized for:', contactHandle);
+        console.log('PFS initialized for:', contactHandle);
       } else {
-        console.log('🔄 PFS already initialized for:', contactHandle);
+        console.log('PFS already initialized for:', contactHandle);
       }
       
       const pfsStatus = await PFSIntegration.getPFSStatus(contactHandle);
-      console.log('📊 PFS Status:', pfsStatus);
+      console.log('PFS Status:', pfsStatus);
       
       setPfsInitialized(true);
       setEncryptionError('');
     } catch (error) {
-      console.error('❌ Failed to initialize PFS:', error);
+      console.error('Failed to initialize PFS:', error);
       setEncryptionError('Failed to initialize Perfect Forward Secrecy');
       throw error;
     }
@@ -178,9 +197,9 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     }
 
     try {
-      console.log(`📜 Loading message history for ${contactHandle}, conversationId: ${conversationId}`);
+      console.log(`Loading message history for ${contactHandle}, conversationId: ${conversationId}`);
       const encryptedMsgs: EncryptedMessage[] = await messageStorage.getMessages(conversationId, 100);
-      console.log(`📜 Found ${encryptedMsgs.length} stored messages for ${contactHandle}:`, encryptedMsgs.map(m => ({ id: m.id, from: m.senderId, content: m.plaintext })));
+      console.log(`Found ${encryptedMsgs.length} stored messages for ${contactHandle}:`, encryptedMsgs.map(m => ({ id: m.id, from: m.senderId, content: m.plaintext })));
       
       const chronological = [...encryptedMsgs].reverse();
       const decryptedMessages: Message[] = [];
@@ -203,10 +222,10 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
         decryptedMessages.push(msg);
       }
 
-      console.log(`📜 Setting ${decryptedMessages.length} messages for ${contactHandle} UI`);
+      console.log(`Setze ${decryptedMessages.length} Nachrichten für ${contactHandle} UI`);
       setMessages(decryptedMessages);
     } catch (err) {
-      console.error('Failed loading message history', err);
+      console.error('Fehlgeschlagen, Nachrichtenverlauf zu laden', err);
     }
   };
 
@@ -237,7 +256,7 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
       try {
         await messageStorage.updateMessageStatus(data.messageId, 'delivered');
       } catch (err) {
-        console.warn('Failed to mark delivered in storage', err);
+        console.warn('Fehlgeschlagen, Nachricht als geliefert markieren in storage', err);
       }
     })();
   };
@@ -266,12 +285,12 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
       let usePFS = false;
 
       if (pfsInitialized) {
-        console.log('🔐 Encrypting message with PFS');
+        console.log('Encrypting message with PFS');
         const pfsMessage = await PFSIntegration.encryptMessage(contactHandle, content);
         encryptedData = JSON.stringify(pfsMessage);
         usePFS = true;
       } else {
-        console.log('🔐 Encrypting message with basic crypto');
+        console.log('Encrypting message with basic crypto');
         const encryptedMessage = await SignalCrypto.encrypt(content, session.keys);
         encryptedData = JSON.stringify(encryptedMessage);
       }
@@ -349,6 +368,24 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setShowScrollToBottom(false);
+  };
+
+  const checkIfAtBottom = () => {
+    if (!messagesContainerRef.current) return;
+    
+    const container = messagesContainerRef.current;
+    const threshold = 100; // pixels from bottom
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    
+    setIsAtBottom(isNearBottom);
+    if (isNearBottom) {
+      setShowScrollToBottom(false);
+    }
+  };
+
+  const handleScroll = () => {
+    checkIfAtBottom();
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -374,7 +411,7 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to clear chat');
+        throw new Error('Fehlgeschlagen, Chat zu löschen');
       }
 
       // Clear local messages
@@ -385,11 +422,11 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
       messageIdsRef.current.clear();
       setShowClearConfirm(false);
 
-      console.log(`✅ Chat cleared with ${contactHandle}`);
+      console.log(`Chat mit ${contactHandle} gelöscht`);
 
     } catch (error) {
-      console.error('❌ Failed to clear chat:', error);
-      alert('Failed to clear chat. Please try again.');
+      console.error('Fehlgeschlagen, Chat zu löschen:', error);
+      alert('Fehlgeschlagen, Chat zu löschen. Bitte versuchen Sie es erneut.');
     } finally {
       setIsClearing(false);
     }
@@ -397,6 +434,7 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
 
   return (
     <div className={styles.container}>
+      <div style={{ height: '8vh', width: '100%', background: 'black', position: 'relative' }}></div>
       <div className={styles.header}>
         <button onClick={onClose} className={styles.backButton}>
           ←
@@ -404,10 +442,16 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
         <button 
           onClick={() => setShowClearConfirm(true)} 
           className={styles.clearButton}
-          title="Clear chat"
+          title="Chat löschen"
           disabled={isClearing}
         >
-          🗑️
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <polyline points="3 6 5 6 21 6" />
+  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+  <line x1="10" y1="11" x2="10" y2="17" />
+  <line x1="14" y1="11" x2="14" y2="17" />
+</svg>
+
         </button>
       </div>
 
@@ -415,22 +459,22 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
       {showClearConfirm && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
-            <h3>Clear Chat</h3>
-            <p>Are you sure you want to delete all messages with {contactHandle}? This action cannot be undone.</p>
+            <h3>Chat löschen</h3>
+            <p>Sind Sie sicher, dass Sie alle Nachrichten mit {contactHandle} löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.</p>
             <div className={styles.modalActions}>
               <button 
                 onClick={() => setShowClearConfirm(false)}
                 className={styles.cancelButton}
                 disabled={isClearing}
               >
-                Cancel
+                Abbrechen
               </button>
               <button 
                 onClick={clearChat}
                 className={styles.clearConfirmButton}
                 disabled={isClearing}
               >
-                {isClearing ? 'Clearing...' : 'Clear Chat'}
+                {isClearing ? 'Löschen...' : 'Chat löschen'}
               </button>
             </div>
           </div>
@@ -438,10 +482,14 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
       )}
 
       {/* Messages Container */}
-      <div className={styles.messagesContainer}>
+      <div 
+        className={styles.messagesContainer}
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+      >
         {messages.length === 0 ? (
           <div className={styles.emptyMessages}>
-            <p>No messages yet</p>
+            <p>Keine Nachrichten</p>
           </div>
         ) : (
           <div className={styles.messagesList}>
@@ -462,6 +510,17 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Scroll to Bottom Button */}
+      {showScrollToBottom && (
+        <button
+          onClick={scrollToBottom}
+          className={styles.scrollToBottomButton}
+          title="Scroll to bottom"
+        >
+          ↓
+        </button>
+      )}
+
       {/* Message Input */}
       <div className={styles.messageInputSection}>
         <div className={styles.inputContainer}>
@@ -477,7 +536,7 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
             onClick={sendMessage}
             disabled={!newMessage.trim() || newMessage.length > 350}
             className={styles.sendButton}
-            title="Send message"
+            title="Nachricht senden"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path d="M8 4L16 12L8 20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -487,8 +546,7 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
           <div className={`${styles.charCounter} ${newMessage.length > 300 ? styles.warning : ''} ${newMessage.length >= 350 ? styles.error : ''}`}>
             {newMessage.length}/350
           </div>
-          {/* Cursor line - only show when input is empty */}
-          {!newMessage && <div className={styles.cursor}></div>}
+          {!newMessage}
         </div>
       </div>
     </div>

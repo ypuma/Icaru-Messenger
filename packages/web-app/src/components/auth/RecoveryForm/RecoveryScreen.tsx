@@ -36,7 +36,7 @@ const RecoveryScreen: React.FC<RecoveryScreenProps> = ({ onBack, onRecovered }):
         const recent = attempts.filter((t) => now - t < RATE_LIMIT_WINDOW);
         if (recent.length >= MAX_ATTEMPTS_PER_HOUR) {
           setRateLimited(true);
-          setError("Too many recovery attempts. Please try again later.");
+          setError("Zu viele Wiederherstellungsversuche. Bitte versuchen Sie es später erneut.");
         }
       } catch {
         localStorage.removeItem("secmes_recovery_attempts");
@@ -74,14 +74,14 @@ const RecoveryScreen: React.FC<RecoveryScreenProps> = ({ onBack, onRecovered }):
     try {
       const text = await navigator.clipboard.readText();
       if (!text) {
-        setError("Clipboard is empty or unreadable.");
+        setError("Fehlgeschlagen, Wiederherstellungsphrase einzufügen. Bitte fügen Sie sie manuell ein.");
         return;
       }
 
       const words = text.trim().toLowerCase().split(/\s+/);
 
       if (words.length !== 12) {
-        setError("Recovery phrase must contain exactly 12 words.");
+        setError("Wiederherstellungsphrase muss genau 12 Wörter enthalten.");
         return;
       }
 
@@ -93,19 +93,19 @@ const RecoveryScreen: React.FC<RecoveryScreenProps> = ({ onBack, onRecovered }):
       setRecoveryWords(words);
       setError(null);
     } catch (err) {
-      console.error("Failed to paste recovery phrase:", err);
-      setError("Failed to read from clipboard. Please paste manually.");
+      console.error("Fehlgeschlagen, Wiederherstellungsphrase einzufügen:", err);
+      setError("Fehlgeschlagen, Wiederherstellungsphrase einzufügen. Bitte fügen Sie sie manuell ein.");
     }
   };
 
   const validateWords = (): boolean => {
     if (recoveryWords.some((w) => !w)) {
-      setError("Please fill in all 12 words.");
+      setError("Bitte füllen Sie alle 12 Wörter ein.");
       return false;
     }
     const mnemonic = recoveryWords.join(" ");
     if (!bip39.validateMnemonic(mnemonic)) {
-      setError("Invalid recovery phrase.");
+      setError("Ungültige Wiederherstellungsphrase.");
       return false;
     }
     return true;
@@ -134,7 +134,7 @@ const RecoveryScreen: React.FC<RecoveryScreenProps> = ({ onBack, onRecovered }):
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Account not found");
+        throw new Error(data.error || "Konto nicht gefunden");
       }
       const data = await res.json();
 
@@ -145,7 +145,7 @@ const RecoveryScreen: React.FC<RecoveryScreenProps> = ({ onBack, onRecovered }):
       });
     } catch (e) {
       console.error("Recovery failed", e);
-      setError(e instanceof Error ? e.message : "Recovery failed");
+      setError(e instanceof Error ? e.message : "Fehlgeschlagen, Konto wiederherzustellen");
       recordAttempt(false);
     } finally {
       setLoading(false);
@@ -156,7 +156,7 @@ const RecoveryScreen: React.FC<RecoveryScreenProps> = ({ onBack, onRecovered }):
 
   return (
     <div className={styles["registration-root"]}>
-      <div className={styles["recovery-label"]}>Recovery Phrase eingeben</div>
+      <div className={styles["recovery-label"]}>Wiederherstellungsphrase eingeben</div>
       <div className={styles["recovery-grid"]}>
         {recoveryWords.map((word, idx) => (
           <input
@@ -179,7 +179,7 @@ const RecoveryScreen: React.FC<RecoveryScreenProps> = ({ onBack, onRecovered }):
         style={{ marginTop: "1rem" }}
         disabled={loading || rateLimited}
       >
-        PASTE
+        EINFÜGEN
       </button>
       {error && (
         <p className="text-red-500 text-center mb-4 max-w-xl mx-auto">{error}</p>

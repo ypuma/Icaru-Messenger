@@ -36,7 +36,7 @@ const AccountCreation: React.FC<AccountCreationProps> = ({ onAccountCreated }) =
   const generateAccountData = async () => {
     // Prevent double execution in StrictMode
     if (generationInProgress.current || (hasGenerated.current && recoveryPhrase)) {
-      console.log('Account generation skipped - already in progress or completed');
+      console.log('Konto-Generierung übersprungen - bereits in Arbeit oder bereits abgeschlossen');
       return;
     }
     
@@ -71,7 +71,7 @@ const AccountCreation: React.FC<AccountCreationProps> = ({ onAccountCreated }) =
       setStep('confirm');
     } catch (err) {
       console.error('Failed to generate account data:', err);
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
+      setError(err instanceof Error ? err.message : 'Ein unerwarteter Fehler ist während der Konto-Generierung aufgetreten.');
     } finally {
       setLoading(false);
       generationInProgress.current = false;
@@ -84,12 +84,12 @@ const AccountCreation: React.FC<AccountCreationProps> = ({ onAccountCreated }) =
 
   const confirmAccount = async () => {
     if (!phraseConfirmed) {
-      setError('Please confirm that you have safely stored your recovery phrase.');
+      setError('Bitte bestätigen Sie, dass Sie Ihre Wiederherstellungsphrase sicher gespeichert haben.');
       return;
     }
 
     if (!recoveryPhrase || !handle) {
-      setError('Missing account data. Please try regenerating.');
+      setError('Fehlende Kontodaten. Bitte versuchen Sie es erneut.');
       return;
     }
 
@@ -123,11 +123,11 @@ const AccountCreation: React.FC<AccountCreationProps> = ({ onAccountCreated }) =
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Account creation failed');
+        throw new Error(errorData.error || 'Konto-Erstellung fehlgeschlagen');
       }
       
       const result = await response.json();
-      console.log('Account created on backend:', result);
+      console.log('Konto auf dem Backend erstellt:', result);
 
       // Store account data locally using the re-derived keys
       await storageManager.initialize(recoveryPhrase);
@@ -150,7 +150,7 @@ const AccountCreation: React.FC<AccountCreationProps> = ({ onAccountCreated }) =
 
     } catch (err) {
       console.error('Account creation failed:', err);
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred during account creation.');
+      setError(err instanceof Error ? err.message : 'Ein unerwarteter Fehler ist während der Konto-Erstellung aufgetreten.');
       setStep('confirm'); // Go back to confirmation step on error
     } finally {
       setLoading(false);
@@ -160,8 +160,8 @@ const AccountCreation: React.FC<AccountCreationProps> = ({ onAccountCreated }) =
 
   const renderGenerationStep = () => (
     <div className="text-center">
-      <h2 className="text-2xl font-bold mb-4">Generating Your Secure Account</h2>
-      <p className="text-gray-400 mb-6">Please wait while we create your unique handle and keys.</p>
+      <h2 className="text-2xl font-bold mb-4">Generieren Sie Ihr Sichere Konto</h2>
+      <p className="text-gray-400 mb-6">Bitte warten Sie, während wir Ihren eindeutigen Handle und Schlüssel erstellen.</p>
       {loading && <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>}
       {error && <p className="text-red-500 mt-4">{error}</p>}
     </div>
@@ -169,16 +169,16 @@ const AccountCreation: React.FC<AccountCreationProps> = ({ onAccountCreated }) =
 
   const renderConfirmationStep = () => (
     <div>
-      <h2 className="text-2xl font-bold text-center mb-4">Your New Account</h2>
+      <h2 className="text-2xl font-bold text-center mb-4">Ihr neues Konto</h2>
       
       <div className="mb-6">
-        <p className="text-gray-400 text-center">Your unique, anonymous handle is:</p>
+        <p className="text-gray-400 text-center">Ihr eindeutiger, anonymer Handle ist:</p>
         <p className="text-3xl font-mono text-center bg-gray-800 rounded-md p-3 my-2">{handle}</p>
       </div>
 
       <div className="mb-6 p-4 border border-yellow-500 rounded-md">
-        <h3 className="text-lg font-bold text-yellow-400 mb-2">Save Your Recovery Phrase!</h3>
-        <p className="text-gray-300 mb-4">This is the ONLY way to recover your account. Store it somewhere safe and offline.</p>
+        <h3 className="text-lg font-bold text-yellow-400 mb-2">Speichern Sie Ihre Wiederherstellungsphrase!</h3>
+        <p className="text-gray-300 mb-4">Dies ist der einzige Weg, um Ihr Konto wiederherzustellen. Speichern Sie es an einem sicheren und offline-Speicherort.</p>
         <div className="bg-gray-800 rounded-md p-4 text-center font-mono text-lg select-all">
           {recoveryPhrase}
         </div>
@@ -191,7 +191,7 @@ const AccountCreation: React.FC<AccountCreationProps> = ({ onAccountCreated }) =
           className="text-sm text-blue-400 hover:underline mt-2"
           disabled={loading}
         >
-          Regenerate
+          Regenerieren
         </button>
       </div>
 
@@ -204,7 +204,7 @@ const AccountCreation: React.FC<AccountCreationProps> = ({ onAccountCreated }) =
           className="h-4 w-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
         />
         <label htmlFor="confirm-phrase" className="ml-2 text-gray-300">
-          I have securely stored my recovery phrase.
+          Ich habe meine Wiederherstellungsphrase sicher gespeichert.
         </label>
       </div>
       
@@ -213,7 +213,7 @@ const AccountCreation: React.FC<AccountCreationProps> = ({ onAccountCreated }) =
         disabled={!phraseConfirmed || loading}
         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md disabled:bg-gray-500"
       >
-        {loading ? 'Creating Account...' : 'Create Account'}
+        {loading ? 'Konto erstellen...' : 'Konto erstellen'}
       </button>
 
       {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
@@ -222,8 +222,8 @@ const AccountCreation: React.FC<AccountCreationProps> = ({ onAccountCreated }) =
 
   const renderStorageStep = () => (
      <div className="text-center">
-      <h2 className="text-2xl font-bold mb-4">Securing Your Account</h2>
-      <p className="text-gray-400 mb-6">Encrypting and storing your account data locally...</p>
+      <h2 className="text-2xl font-bold mb-4">Sichern Sie Ihr Konto</h2>
+      <p className="text-gray-400 mb-6">Verschlüsseln und speichern Sie Ihre Kontodaten lokal...</p>
       {loading && <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>}
       {error && <p className="text-red-500 mt-4">{error}</p>}
     </div>

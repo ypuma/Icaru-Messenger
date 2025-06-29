@@ -41,11 +41,11 @@ const AccountRecovery: React.FC<AccountRecoveryProps> = ({ onAccountRecovered, o
           const data: { allowed: boolean; retryAfter: number } = await res.json();
           if (!data.allowed) {
             setRateLimited(true);
-            setError(`Too many recovery attempts. Try again in ${Math.ceil(data.retryAfter / 60)} minutes.`);
+            setError(`Zu viele Wiederherstellungsversuche. Versuchen Sie es in ${Math.ceil(data.retryAfter / 60)} Minuten erneut.`);
           }
         }
       } catch {
-        console.warn('Rate-limit check failed, falling back to client logic');
+        console.warn('Wiederherstellungsversuche-Limit-Check fehlgeschlagen, Fallback auf Client-Logik');
       }
     })();
   }, []);
@@ -75,7 +75,7 @@ const AccountRecovery: React.FC<AccountRecoveryProps> = ({ onAccountRecovered, o
       const oldestAttempt = Math.min(...recentAttempts.map(a => a.timestamp));
       const timeUntilReset = oldestAttempt + RATE_LIMIT_WINDOW - now;
       setRateLimited(true);
-      setError(`Too many recovery attempts. Try again in ${Math.ceil(timeUntilReset / 60000)} minutes.`);
+      setError(`Zu viele Wiederherstellungsversuche. Versuchen Sie es in ${Math.ceil(timeUntilReset / 60000)} Minuten erneut.`);
       
       // Set timer to clear rate limit
       setTimeout(() => {
@@ -108,12 +108,12 @@ const AccountRecovery: React.FC<AccountRecoveryProps> = ({ onAccountRecovered, o
     const mnemonic = recoveryWords.join(' ').trim();
     
     if (!mnemonic || recoveryWords.some(word => !word.trim())) {
-      setError('Please enter all 12 recovery words.');
+      setError('Geben sie bitte alle 12 Wörter ein.');
       return false;
     }
 
     if (!bip39.validateMnemonic(mnemonic)) {
-      setError('Invalid recovery seed. Please check your words and try again.');
+      setError('Ungültige Wiederherstellungsphrase. Bitte überprüfen Sie Ihre Wörter und versuchen Sie es erneut.');
       return false;
     }
 
@@ -129,7 +129,7 @@ const AccountRecovery: React.FC<AccountRecoveryProps> = ({ onAccountRecovered, o
         const data: { allowed: boolean; retryAfter: number } = await res.json();
         if (!data.allowed) {
           setRateLimited(true);
-          setError(`Too many recovery attempts. Try again in ${Math.ceil(data.retryAfter / 60)} minutes.`);
+          setError(`Zu viele Wiederherstellungsversuche. Versuchen Sie es in ${Math.ceil(data.retryAfter / 60)} Minuten erneut.`);
           return;
         }
       }
@@ -179,7 +179,7 @@ const AccountRecovery: React.FC<AccountRecoveryProps> = ({ onAccountRecovered, o
         const errorData = await response.json();
         console.log('Backend error response:', errorData);
         if (response.status === 404) {
-          throw new Error('Account not found. This recovery seed may be from a different installation or the account may have been deleted.');
+          throw new Error('Konto nicht gefunden. Diese Wiederherstellungsphrase könnte von einer anderen Installation stammen oder das Konto wurde gelöscht.');
         }
         throw new Error(errorData.error || 'Failed to verify account');
       }
@@ -200,7 +200,7 @@ const AccountRecovery: React.FC<AccountRecoveryProps> = ({ onAccountRecovered, o
 
     } catch (error) {
       console.error('Account recovery failed:', error);
-      setError(error instanceof Error ? error.message : 'An unexpected error occurred during recovery.');
+      setError(error instanceof Error ? error.message : 'Ein unerwarteter Fehler ist während der Wiederherstellung aufgetreten.');
       recordRecoveryAttempt(false);
     } finally {
       setIsLoading(false);
@@ -229,8 +229,8 @@ const AccountRecovery: React.FC<AccountRecoveryProps> = ({ onAccountRecovered, o
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Recover Your Account</h2>
-        <p className="text-gray-600">Enter your 12-word recovery phrase</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Wiederherstellen Sie Ihr Konto</h2>
+        <p className="text-gray-600">Geben Sie Ihre 12-Wort-Wiederherstellungsphrase ein</p>
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-6">

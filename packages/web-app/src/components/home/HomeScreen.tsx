@@ -53,7 +53,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
       const data = await response.json();
       setContacts(data.contacts || []);
     } catch (err) {
-      console.error('Failed to fetch contacts', err);
+      console.error('Fehlgeschlagen, Kontakte zu laden', err);
     }
   };
 
@@ -80,9 +80,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
 
     } catch (err) {
       // Show user-friendly error message
-      const errorMsg = (err as Error).message || 'Failed to add contact';
+      const errorMsg = (err as Error).message || 'Fehlgeschlagen, Kontakt hinzuzufügen';
       setErrorMessage(errorMsg);
-      console.error('Failed to add contact:', err);
+      console.error('Fehlgeschlagen, Kontakt hinzuzufügen:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -112,7 +112,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
       setEditNicknameValue("");
     } catch (err) {
       console.error('Failed to update nickname:', err);
-      alert('Failed to update nickname');
+      alert('Fehlgeschlagen, Nickname zu aktualisieren. Bitte versuchen Sie es erneut.');
     }
   };
 
@@ -134,10 +134,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
         <button
           type="button"
           onClick={onLogout}
-          aria-label="Logout"
+          aria-label="Abmelden"
           className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg shadow transition-transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-400"
         >
-          Logout
+          Abmelden
         </button>
       </header>
 
@@ -148,10 +148,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
         className={`${styles.card} w-full max-w-xs`}
       >
         {/* Contacts list */}
-        <h2 className="text-white font-semibold mb-2 self-start">Contacts</h2>
+        <h2 className="text-white font-semibold mb-2 self-start" style={{ paddingLeft: '1.75rem' }}>Kontakte</h2>
         <div className="w-full max-h-60 overflow-y-auto flex flex-col gap-2">
           {contacts.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center w-full">No contacts yet</p>
+            <p className="text-gray-400 text-sm text-center w-full">Keine Kontakte</p>
           ) : (
             contacts.map((contact) => (
               <div key={contact.id} className="w-full">
@@ -201,9 +201,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
                         startEditingNickname(contact);
                       }}
                       className={styles.editButton}
-                      title="Edit nickname"
+                      title="Nickname bearbeiten"
                     >
-                      ✏️
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-edit">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
                     </button>
                   </div>
                 )}
@@ -242,7 +245,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
           )}
           <input
             type="text"
-            placeholder="Enter handle"
+            placeholder="Handle eingeben"
             value={handleInput}
             onChange={(e) => {
               setHandleInput(e.target.value);
@@ -277,7 +280,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
             disabled={isSubmitting}
             className="w-full h-10 bg-white text-black font-semibold rounded-lg shadow-md hover:bg-gray-100 active:scale-95 transition-transform focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
-            {isSubmitting ? 'Adding...' : 'Add'}
+            {isSubmitting ? 'Hinzufügen...' : 'Hinzufügen'}
           </button>
         </div>
       )}

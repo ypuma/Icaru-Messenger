@@ -86,9 +86,9 @@ function App() {
           // Initialize global message service
           try {
             await globalMessageService.initialize(user);
-            console.log('✅ GlobalMessageService initialized for existing session');
+            console.log(' GlobalMessageService initialized for existing session');
           } catch (error) {
-            console.error('❌ Failed to initialize GlobalMessageService:', error);
+            console.error('Failed to initialize GlobalMessageService:', error);
           }
         } else {
           // Clear invalid session
@@ -152,9 +152,9 @@ function App() {
       // Initialize global message service
       try {
         await globalMessageService.initialize(user);
-        console.log('✅ GlobalMessageService initialized for new session');
+        console.log('GlobalMessageService initialized for new session');
       } catch (error) {
-        console.error('❌ Failed to initialize GlobalMessageService:', error);
+        console.error('Failed to initialize GlobalMessageService:', error);
       }
       
       // Store user data and session
@@ -255,7 +255,7 @@ function App() {
     try {
       await addContactApi(contactHandle, currentUser.sessionToken, nickname);
 
-      // Remain on the Home view; contacts list will refresh (optimistic update in HomeScreen)
+      // Remain on the Home view; contacts list will refresh
       // Optionally, reset any chat-related state
       setInitialShowNewChat(false);
     } catch (err) {
@@ -283,7 +283,7 @@ function App() {
       <div className="w-full h-screen bg-black flex items-center justify-center overflow-hidden">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-300">Loading...</p>
+          <p className="text-gray-300">Lädt...</p>
         </div>
       </div>
     );
@@ -337,15 +337,17 @@ function App() {
                 left: '50%', 
                 transform: 'translateX(-50%)', 
                 zIndex: 500,
-                color: '#ffffff', 
+                color: '#ffffff',
                 fontSize: '1.5rem', 
-                fontWeight: 300, 
+                fontFamily: 'SF Pro Rounded, SF Pro, -apple-system, BlinkMacSystemFont, sans-serif',
+                fontWeight: 600, 
                 letterSpacing: '0.02em', 
                 textAlign: 'center',
                 background: 'rgba(0, 0, 0, 0.8)',
                 padding: '0.5rem 1rem',
                 borderRadius: '0.5rem',
-                backdropFilter: 'blur(8px)'
+                backdropFilter: 'blur(8px)',
+                textShadow: '0 0 10px rgba(255, 255, 255, 0.2), 0 0 20px rgba(255, 255, 255, 0.2), 0 0 30px rgba(255, 255, 255, 0.1)'
               }}>
                 {selectedContactDisplayName || 'Chat'}
               </div>

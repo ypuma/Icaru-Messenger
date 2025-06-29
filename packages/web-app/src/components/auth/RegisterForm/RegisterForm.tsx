@@ -19,7 +19,7 @@ interface RegisterFormProps {
 const RegisterForm: React.FC<RegisterFormProps> = ({ onAccountCreated, onSwitchToRecovery }) => {
 
   const handleAccountCreated = (accountData: AccountData) => {
-    console.log('Account created in RegisterForm:', accountData);
+    console.log('Konto erstellt in RegisterForm:', accountData);
     if (onAccountCreated) {
       onAccountCreated(accountData);
     }
