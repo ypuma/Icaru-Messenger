@@ -121,8 +121,46 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
     setEditNicknameValue("");
   };
 
+  const deleteContact = async (contact: Contact) => {
+    if (!window.confirm(`Are you sure you want to delete ${getDisplayName(contact)}?`)) {
+      return;
+    }
+
+    try {
+      const sessionData = localStorage.getItem('secmes_current_session');
+      if (!sessionData) return;
+      const { token } = JSON.parse(sessionData);
+      
+      console.log('Deleting contact:', contact.id, 'with URL:', `${BASE_URL}/api/contacts/${contact.id}`);
+      
+      const response = await fetch(`${BASE_URL}/api/contacts/${contact.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('Delete response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Delete failed with status:', response.status, 'Response:', errorData);
+        throw new Error(`Failed to delete contact: ${response.status} - ${errorData}`);
+      }
+      
+      // Remove contact from local state
+      setContacts(prev => prev.filter(c => c.id !== contact.id));
+      console.log('Contact deleted successfully');
+      
+    } catch (err) {
+      console.error('Failed to delete contact:', err);
+      alert('Fehlgeschlagen, Kontakt zu löschen. Bitte versuchen Sie es erneut.');
+    }
+  };
+
   const getDisplayName = (contact: Contact) => {
-    return contact.nickname || `@${contact.handle}`;
+    return contact.nickname || `${contact.handle}`;
   };
 
   return (
@@ -130,7 +168,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
       {/* Header bar */}
       <header className={styles.headerBar}>
         <h1 className={styles.brand}>Icaru</h1>
-        <div className={styles.handleBadge}>@{handle}</div>
+        <div className={styles.handleBadge}>{handle}</div>
         <button
           type="button"
           onClick={onLogout}
@@ -149,7 +187,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
       >
         {/* Contacts list */}
         <h2 className="text-white font-semibold mb-2 self-start" style={{ paddingLeft: '1.75rem' }}>Kontakte</h2>
-        <div className="w-full max-h-60 overflow-y-auto flex flex-col gap-2">
+        <div className="w-full max-h-60 overflow-y-auto flex flex-col">
           {contacts.length === 0 ? (
             <p className="text-gray-400 text-sm text-center w-full">Keine Kontakte</p>
           ) : (
@@ -166,7 +204,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
                         if (e.key === 'Escape') cancelEditingNickname();
                       }}
                       className={styles.editInput}
-                      placeholder={`@${contact.handle}`}
+                      placeholder={`${contact.handle}`}
                       autoFocus
                     />
                     <div className={styles.editActions}>
@@ -190,24 +228,42 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
                       onClick={() => onContactSelect(contact.handle)}
                       className={styles.contactInfo}
                     >
-                      <div className={styles.contactName}>{getDisplayName(contact)}</div>
+                      <div className={styles.contactNameRow}>
+                        <div className={styles.contactName}>{getDisplayName(contact)}</div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startEditingNickname(contact);
+                          }}
+                          className={styles.editButton}
+                          title="Nickname bearbeiten"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-edit">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteContact(contact);
+                          }}
+                          className={styles.deleteButton}
+                          title="Kontakt löschen"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-trash-2">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                            <path d="M10 11v6" />
+                            <path d="M14 11v6" />
+                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                          </svg>
+                        </button>
+                      </div>
                       {contact.nickname && (
-                        <div className={styles.contactHandle}>@{contact.handle}</div>
+                        <div className={styles.contactHandle}>{contact.handle}</div>
                       )}
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        startEditingNickname(contact);
-                      }}
-                      className={styles.editButton}
-                      title="Nickname bearbeiten"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-edit">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                      </svg>
-                    </button>
                   </div>
                 )}
               </div>

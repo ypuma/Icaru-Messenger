@@ -16,9 +16,7 @@ const updateContactSchema = z.object({
   isBlocked: z.boolean().optional(),
 });
 
-const deleteContactSchema = z.object({
-  contactHandle: z.string(),
-});
+
 
 export const addContact = async (
   request: FastifyRequest,
@@ -254,42 +252,62 @@ export const updateContact = async (
 
 export const deleteContact = async (request: FastifyRequest, reply: FastifyReply) => {
   const { userId } = request.user!;
-  const { handle: contactHandle } = request.params as { handle: string };
+  const { contactId } = request.params as { contactId: string };
 
   try {
-    // Find the user to be deleted
-    const contactUser = await prisma.user.findUnique({
-      where: { handle: contactHandle },
+    // Check if the contact exists and belongs to the current user
+    const contact = await prisma.contact.findFirst({
+      where: {
+        id: contactId,
+        userId: userId,
+      },
+      include: {
+        contact: {
+          select: {
+            id: true,
+            handle: true,
+          }
+        }
+      }
     });
 
-    if (!contactUser) {
-      return reply.status(404).send({ message: 'Contact not found' });
+    if (!contact) {
+      return reply.status(404).send({ 
+        error: 'Not Found',
+        message: 'Contact not found' 
+      });
     }
 
     // Begin a transaction to ensure both sides of the relationship are deleted
     await prisma.$transaction(async (tx) => {
       // Delete the relationship from the current user's perspective
-      await tx.contact.deleteMany({
+      await tx.contact.delete({
         where: {
-          userId: userId,
-          contactId: contactUser.id,
+          id: contactId,
         },
       });
 
       // Delete the relationship from the other user's perspective
       await tx.contact.deleteMany({
         where: {
-          userId: contactUser.id,
+          userId: contact.contact.id,
           contactId: userId,
         },
       });
     });
 
-    logger.info(`User ${userId} deleted contact ${contactHandle} (${contactUser.id})`);
-    reply.status(204).send();
+    logger.info(`User ${userId} deleted contact ${contact.contact.handle} (ID: ${contactId})`);
+    
+    return reply.status(200).send({
+      success: true,
+      message: 'Contact deleted successfully'
+    });
 
   } catch (error) {
     logger.error(`Failed to delete contact for user ${userId}:`, error);
-    reply.status(500).send({ message: 'Failed to delete contact' });
+    return reply.status(500).send({ 
+      error: 'Internal Server Error',
+      message: 'Failed to delete contact' 
+    });
   }
 }; 

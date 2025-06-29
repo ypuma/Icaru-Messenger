@@ -10,6 +10,6 @@ export async function contactRoutes(fastify: FastifyInstance) {
     instance.get('/', getContacts);
     instance.post('/', addContact);
     instance.put('/', updateContact);
-    instance.delete('/:handle', deleteContact);
+    instance.delete('/:contactId', deleteContact);
   });
 } 

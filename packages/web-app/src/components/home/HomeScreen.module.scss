@@ -206,6 +206,7 @@
 .contactCard {
   width: 100%;
   padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 0.75rem;
   color: #000000;
@@ -218,11 +219,6 @@
   &:hover {
     background: rgba(255, 255, 255, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    
-    .editButton {
-      opacity: 1;
-      transform: scale(1);
-    }
   }
   
   &:active {
@@ -232,36 +228,41 @@
 
 .contactInfo {
   flex: 1;
-  
-  .contactName {
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: #000000;
-    margin-bottom: 0.125rem;
-  }
-  
-  .contactHandle {
-    font-size: 0.75rem;
-    color: #6b7280;
-    font-weight: 400;
-  }
+}
+
+.contactNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.125rem;
+}
+
+.contactName {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #000000;
+  flex: 1;
+}
+
+.contactHandle {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 400;
 }
 
 .editButton {
-  position: absolute;
-  top: 50%;
-  right: 0.75rem;
-  transform: translateY(-50%) scale(0.9);
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 0.375rem;
+  background: transparent;
+  padding: 0.25rem;
   font-size: 0.75rem;
   color: #6b7280;
   cursor: pointer;
-  opacity: 0;
   transition: all 0.2s ease;
   backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
   
   &:hover {
     background: rgba(255, 255, 255, 1);
@@ -271,7 +272,33 @@
   }
   
   &:active {
-    transform: translateY(-50%) scale(0.95);
+    transform: scale(0.95);
+    background: rgba(243, 244, 246, 1);
+  }
+}
+
+.deleteButton {
+  background: transparent;
+  padding: 0.25rem;
+  font-size: 0.75rem;
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 1);
+    color: #b91c1c;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  &:active {
+    transform: scale(0.95);
     background: rgba(243, 244, 246, 1);
   }
 }
@@ -280,6 +307,7 @@
 .editingCard {
   width: 100%;
   padding: 1rem;
+  margin-bottom: 0.5rem;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 0.75rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
