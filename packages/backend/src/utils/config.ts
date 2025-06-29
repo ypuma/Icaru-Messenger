@@ -10,7 +10,7 @@ const configSchema = z.object({
   DATABASE_URL: z.string().default('file:./dev.db'),
   
   // JWT
-  JWT_SECRET: z.string().default('your-super-secret-jwt-key-here-change-in-production'),
+  JWT_SECRET: z.string().default('b733c9d6167a117b604178664ee9569caf85c321e898c9db3ca09ae9ae90a5b9ff0b1ca888f68e7798132b2603622a747b1ae1965f8a792ac6226e5b2a4d4a12'),
   JWT_EXPIRES_IN: z.string().default('7d'),
   
   // CORS
