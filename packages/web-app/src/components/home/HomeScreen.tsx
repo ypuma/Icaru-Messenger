@@ -41,7 +41,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
       const sessionData = localStorage.getItem('secmes_current_session');
       if (!sessionData) return;
       const { token } = JSON.parse(sessionData);
-      const response = await fetch(`http://79.255.198.124:3001/api/contacts`, {
+      const response = await fetch(`http://0.0.0.0:11401/api/contacts`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

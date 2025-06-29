@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const configSchema = z.object({
   // Server
-  PORT: z.number().default(3001),
+  PORT: z.number().default(11401),
   HOST: z.string().default('0.0.0.0'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   
@@ -14,7 +14,7 @@ const configSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('7d'),
   
   // CORS
-  CORS_ORIGIN: z.string().default('http://79.255.198.124:5173'),
+  CORS_ORIGIN: z.string().default('http://0.0.0.0:11402'),
   
   // Rate Limiting
   RATE_LIMIT_MAX: z.number().default(100),

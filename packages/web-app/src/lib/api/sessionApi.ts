@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://79.255.198.124:3001';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://0.0.0.0:11401';
 
 export interface HeartbeatRequest {
   sessionId: string;

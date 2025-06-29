@@ -4,7 +4,7 @@ import * as bip39 from "bip39";
 import { deriveKeyPairFromMnemonic } from "../../../lib/crypto/account";
 import { Buffer } from "buffer";
 
-const API_BASE_URL = "http://79.255.198.124:3001";
+const API_BASE_URL = "http://0.0.0.0:11401";
 
 interface RecoveryScreenProps {
   onBack: () => void;

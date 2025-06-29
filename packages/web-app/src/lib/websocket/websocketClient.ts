@@ -53,7 +53,7 @@ class WebSocketClient {
 
     return new Promise((resolve, reject) => {
       try {
-        const wsUrl = import.meta.env.VITE_WS_URL || 'ws://79.255.198.124:3001';
+        const wsUrl = import.meta.env.VITE_WS_URL || 'ws://0.0.0.0:11401';
         this.ws = new WebSocket(`${wsUrl}/ws`);
 
         this.ws.onopen = () => {

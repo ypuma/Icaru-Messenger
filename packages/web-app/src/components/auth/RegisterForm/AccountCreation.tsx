@@ -7,7 +7,7 @@ import {
 import { storageManager } from '../../../lib/storage/secureStorage';
 import { Buffer } from 'buffer';
 
-const API_BASE_URL = 'http://79.255.198.124:3001';
+const API_BASE_URL = 'http://0.0.0.0:11401';
 
 // This type is now consistent with storage interfaces
 interface KeyPair {

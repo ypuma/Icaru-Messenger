@@ -22,7 +22,7 @@ npx prisma migrate dev --name init
 npm run dev
 ```
 
-The server will start at `http://79.255.198.124:3001`
+The server will start at `http://0.0.0.0:11401`
 
 ### Production
 ```bash
@@ -222,7 +222,7 @@ Environment variables (see `src/utils/config.ts`):
 
 ```bash
 # Server
-PORT=3001
+PORT=11401
 HOST=0.0.0.0
 NODE_ENV=development
 
@@ -234,7 +234,7 @@ JWT_SECRET=your-secret-key
 JWT_EXPIRES_IN=7d
 
 # CORS
-CORS_ORIGIN=http://79.255.198.124:5173
+CORS_ORIGIN=http://0.0.0.0:11402
 
 # Rate Limiting
 RATE_LIMIT_MAX=100
@@ -264,18 +264,18 @@ npm run test:watch
 
 ```bash
 # Health check
-curl http://79.255.198.124:3001/health
+curl http://0.0.0.0:11401/health
 
 # Create account
-curl -X POST http://79.255.198.124:3001/api/accounts \
+curl -X POST http://0.0.0.0:11401/api/accounts \
   -H "Content-Type: application/json" \
   -d '{"handle":"testuser","formattedHandle":"test-user","publicKey":"abc123","qrCodeData":"test","timestamp":1234567890}'
 
 # Get account
-curl "http://79.255.198.124:3001/api/accounts?handle=testuser"
+curl "http://0.0.0.0:11401/api/accounts?handle=testuser"
 
 # Check handle availability  
-curl "http://79.255.198.124:3001/api/accounts/check-handle?handle=newuser"
+curl "http://0.0.0.0:11401/api/accounts/check-handle?handle=newuser"
 ```
 
 ## 🚀 Deployment

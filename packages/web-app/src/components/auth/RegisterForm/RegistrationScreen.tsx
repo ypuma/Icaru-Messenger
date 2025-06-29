@@ -147,7 +147,7 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ onBack, onConti
       
       console.log('Sending to backend:', registrationData);
       
-      const res = await fetch('http://79.255.198.124:3001/api/auth/register', {
+      const res = await fetch('http://0.0.0.0:11401/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(registrationData)

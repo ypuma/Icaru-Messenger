@@ -10,7 +10,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "reset": "curl -X POST -H 'x-admin-secret: dev-secret' http://79.255.198.124:3001/api/admin/reset",
+    "reset": "curl -X POST -H 'x-admin-secret: dev-secret' http://0.0.0.0:11401/api/admin/reset",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "db:generate": "prisma generate",

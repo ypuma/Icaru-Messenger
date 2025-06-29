@@ -61,13 +61,13 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: 5173,
+    port: 11402,
     fs: {
       allow: ['..']
     },
     proxy: {
       '/api': {
-        target: 'http://79.255.198.124:3001',
+        target: 'http://0.0.0.0:11401',
         changeOrigin: true,
         secure: false,
       },

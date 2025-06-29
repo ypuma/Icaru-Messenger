@@ -17,7 +17,7 @@ JWT_SECRET="your-super-secure-32-character-minimum-secret-key"
 CORS_ORIGIN="https://your-frontend-domain.com"
 
 # Server Configuration
-PORT=3001
+PORT=11401
 HOST=0.0.0.0
 
 # Database (PostgreSQL recommended)

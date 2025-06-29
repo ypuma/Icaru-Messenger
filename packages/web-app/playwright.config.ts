@@ -18,7 +18,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://79.255.198.124:5173',
+    baseURL: 'http://0.0.0.0:11402',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -56,7 +56,7 @@ export default defineConfig({
   webServer: [
     {
       command: 'npm run dev',
-      url: 'http://79.255.198.124:5173',
+      url: 'http://0.0.0.0:11402',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
     }
