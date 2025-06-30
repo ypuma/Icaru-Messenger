@@ -107,12 +107,17 @@
   font-weight: 600;
   margin: 0.7rem 0 1.2rem 0;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
   width: auto;
   min-width: 120px;
 }
+.copy-btn:hover {
+  background: #e5e5e5;
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
 .copy-btn:active {
-  background: #eee;
+  transform: scale(0.97);
 }
 
 .toggle-row {
@@ -156,6 +161,11 @@
   user-select: none;
 }
 
+.toggle-switch:active {
+  transform: scale(0.95);
+  transition: transform 0.1s;
+}
+
 .fortfahren-btn {
   width: 100%;
   padding: 0.8rem 0;
@@ -168,13 +178,21 @@
   margin-top: 0.7rem;
   cursor: pointer;
   opacity: 1;
-  transition: background 0.2s, opacity 0.2s;
+  transition: background 0.2s, opacity 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 .fortfahren-btn:disabled {
   background: #222;
   color: #888;
   cursor: not-allowed;
   opacity: 0.6;
+}
+.fortfahren-btn:not(:disabled):hover {
+  background: #e5e5e5;
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+.fortfahren-btn:not(:disabled):active {
+  transform: scale(0.97);
 }
 
 .back-btn {
@@ -186,12 +204,17 @@
   padding: 0.5rem 1.5rem;
   font-size: clamp(1rem, 2vw, 1rem);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
   width: auto;
   min-width: 120px;
 }
 .back-btn:hover {
   background: #222;
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+.back-btn:active {
+  transform: scale(0.97);
 }
 
 @media (max-width: 600px) {
