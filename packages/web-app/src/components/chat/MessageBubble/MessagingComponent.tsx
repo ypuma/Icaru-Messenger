@@ -87,6 +87,9 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messageIdsRef = useRef<Set<string>>(new Set());
   const pfsInitializedRef = useRef(pfsInitialized);
+  const userHasScrolledRef = useRef<boolean>(false);
+  const lastMessageCountRef = useRef<number>(0);
+  const shouldAutoScrollRef = useRef<boolean>(false);
 
   useEffect(() => {
     pfsInitializedRef.current = pfsInitialized;
@@ -106,15 +109,40 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     };
   }, [contactHandle]);
 
-  // Smart scroll behavior - only auto-scroll if user is at bottom
+  // Conservative auto-scroll behavior - only scroll when absolutely necessary
   useEffect(() => {
-    if (isAtBottom) {
-      scrollToBottom();
-    } else {
-      // Show scroll to bottom button when new messages arrive and user is scrolled up
+    if (messages.length === 0) return;
+    
+    const messageCountChanged = messages.length !== lastMessageCountRef.current;
+    const newMessagesAdded = messages.length > lastMessageCountRef.current;
+    
+    // Update message count ref
+    lastMessageCountRef.current = messages.length;
+    
+    // Only consider auto-scroll if new messages were added
+    if (!newMessagesAdded) return;
+    
+    const lastMessage = messages[messages.length - 1];
+    const isOwnMessage = lastMessage?.isOwn;
+    
+    // Auto-scroll only in these specific cases:
+    // 1. It's our own message (we just sent it)
+    // 2. Initial load AND we haven't manually scrolled yet
+    // 3. We're genuinely at the bottom AND user hasn't manually scrolled
+    
+    if (isOwnMessage) {
+      // Always scroll for our own messages
+      shouldAutoScrollRef.current = true;
+      setTimeout(() => scrollToBottom(), 50);
+    } else if (!userHasScrolledRef.current && isAtBottom) {
+      // Only auto-scroll for incoming messages if user hasn't scrolled manually
+      shouldAutoScrollRef.current = true;
+      setTimeout(() => scrollToBottom(), 50);
+    } else if (newMessagesAdded && !isAtBottom) {
+      // Show scroll button for new messages when not at bottom
       setShowScrollToBottom(true);
     }
-  }, [messages, isAtBottom]);
+  }, [messages]);
 
   // Refresh messages periodically to pick up messages stored by GlobalMessageService
   useEffect(() => {
@@ -127,11 +155,12 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
     return () => clearInterval(refreshInterval);
   }, [session]);
 
-  // Check scroll position on mount and after messages load
+  // Initialize scroll position on first load
   useEffect(() => {
-    if (messagesContainerRef.current && messages.length > 0) {
-      // Small delay to ensure DOM is updated
+    if (messagesContainerRef.current && messages.length > 0 && lastMessageCountRef.current === 0) {
+      // Only on initial load - scroll to bottom and check position
       setTimeout(() => {
+        scrollToBottom();
         checkIfAtBottom();
       }, 100);
     }
@@ -346,6 +375,8 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
       pfsMessage: pfsInitialized,
     };
 
+    // Mark that we should auto-scroll for our own message
+    shouldAutoScrollRef.current = true;
     setMessages(prev => [...prev, tempMessage]);
     setNewMessage('');
     
@@ -367,24 +398,38 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    setShowScrollToBottom(false);
+    if (messagesEndRef.current) {
+      shouldAutoScrollRef.current = true; // Mark as programmatic scroll
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      setShowScrollToBottom(false);
+      // Reset manual scroll tracking when user explicitly scrolls to bottom
+      userHasScrolledRef.current = false;
+      // Update isAtBottom state after scrolling
+      setTimeout(() => {
+        setIsAtBottom(true);
+        shouldAutoScrollRef.current = false;
+      }, 100);
+    }
   };
 
   const checkIfAtBottom = () => {
     if (!messagesContainerRef.current) return;
     
     const container = messagesContainerRef.current;
-    const threshold = 100; // pixels from bottom
+    const threshold = 50; // pixels from bottom - reduced for better UX
     const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
     
     setIsAtBottom(isNearBottom);
-    if (isNearBottom) {
-      setShowScrollToBottom(false);
-    }
+    setShowScrollToBottom(!isNearBottom && messages.length > 0);
   };
 
   const handleScroll = () => {
+    // Track that user has manually scrolled
+    if (!shouldAutoScrollRef.current) {
+      userHasScrolledRef.current = true;
+    }
+    shouldAutoScrollRef.current = false;
+    
     checkIfAtBottom();
   };
 
@@ -435,6 +480,10 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
   return (
     <div className={styles.container}>
       <div style={{ height: '8vh', width: '100%', background: 'black', position: 'relative' }}></div>
+      
+      {/* Header Overlay with Blur */}
+      <div className={styles.headerOverlay}></div>
+      
       <div className={styles.header}>
         <button onClick={onClose} className={styles.backButton}>
           ←

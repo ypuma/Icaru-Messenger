@@ -63,13 +63,13 @@ export class SignalCrypto {
    */
   static async createIdentity(): Promise<KeyPair> {
     await sodium.ready;
-    console.log('🔑 [Backend] Generating new identity key pair...');
+    console.log('[Backend] Generating new identity key pair...');
     
     const keyPair = sodium.crypto_kx_keypair();
     const publicKey = sodium.to_base64(keyPair.publicKey);
     const privateKey = sodium.to_base64(keyPair.privateKey);
     
-    console.log('✅ [Backend] Identity key pair generated:', {
+    console.log('[Backend] Identity key pair generated:', {
       publicKeyPreview: publicKey.slice(0, 16) + '...',
       privateKeyLength: privateKey.length
     });
@@ -84,7 +84,7 @@ export class SignalCrypto {
    * Generates a new pre-key pair (same as identity for simplicity).
    */
   static async createPreKey(): Promise<KeyPair> {
-    console.log('🔑 [Backend] Generating new pre-key pair...');
+    console.log('[Backend] Generating new pre-key pair...');
     return this.createIdentity();
   }
 
@@ -93,7 +93,7 @@ export class SignalCrypto {
    */
   static async signPreKey(preKey: KeyPair, identityKey: KeyPair): Promise<string> {
     await sodium.ready;
-    console.log('✍️ [Backend] Signing pre-key with identity key...');
+    console.log('[Backend] Signing pre-key with identity key...');
     
     const preKeyBytes = sodium.from_base64(preKey.publicKey);
     const identityPrivateKeyBytes = sodium.from_base64(identityKey.privateKey);
@@ -102,7 +102,7 @@ export class SignalCrypto {
     const signingKeyPair = sodium.crypto_sign_seed_keypair(identityPrivateKeyBytes.slice(0, 32));
     const signature = sodium.crypto_sign_detached(preKeyBytes, signingKeyPair.privateKey);
     
-    console.log('✅ [Backend] Pre-key signed successfully');
+    console.log('[Backend] Pre-key signed successfully');
     return sodium.to_base64(signature);
   }
 
@@ -126,7 +126,7 @@ export class SignalCrypto {
     await sodium.ready;
 
     try {
-      console.log('🔗 [Backend] Building crypto_kx session...', {
+      console.log('[Backend] Building crypto_kx session...', {
         role: isClient ? 'CLIENT' : 'SERVER',
         ourKeyLength: ourIdentityKey.privateKey.length,
         theirKeyPreview: theirKeyBundle.identityKey.slice(0, 20) + '...'
@@ -139,11 +139,11 @@ export class SignalCrypto {
 
       // Handle different key formats (hex from account creation vs base64 from createIdentity)
       if (ourIdentityKey.privateKey.length > 50) { // Likely hex format
-        console.log('🔄 [Backend] Converting hex keys to Uint8Array');
+        console.log('[Backend] Converting hex keys to Uint8Array');
         ourPrivateKey = await this.convertHexToUint8Array(ourIdentityKey.privateKey);
         ourPublicKey = await this.convertHexToUint8Array(ourIdentityKey.publicKey);
       } else {
-        console.log('🔄 [Backend] Using base64 keys directly');
+        console.log('[Backend] Using base64 keys directly');
         ourPrivateKey = sodium.from_base64(ourIdentityKey.privateKey);
         ourPublicKey = sodium.from_base64(ourIdentityKey.publicKey);
       }
@@ -163,11 +163,11 @@ export class SignalCrypto {
       if (isClient) {
         // Client side: generates (rx, tx) where rx is for receiving from server, tx for sending to server
         sessionKeys = sodium.crypto_kx_client_session_keys(ourPublicKey, ourPrivateKey, theirPublicKey);
-        console.log('🔑 [Backend] Generated CLIENT session keys');
+        console.log('[Backend] Generated CLIENT session keys');
       } else {
         // Server side: generates (rx, tx) where rx is for receiving from client, tx for sending to client
         sessionKeys = sodium.crypto_kx_server_session_keys(ourPublicKey, ourPrivateKey, theirPublicKey);
-        console.log('🔑 [Backend] Generated SERVER session keys');
+        console.log('[Backend] Generated SERVER session keys');
       }
 
       const result: SessionKeys = {
@@ -175,7 +175,7 @@ export class SignalCrypto {
         rx: sessionKeys.sharedRx, // Key for decrypting their incoming messages
       };
 
-      console.log('✅ [Backend] Session keys established:', {
+      console.log('[Backend] Session keys established:', {
         role: isClient ? 'CLIENT' : 'SERVER',
         txKeyPreview: Array.from(result.tx.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(''),
         rxKeyPreview: Array.from(result.rx.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join('')
@@ -183,7 +183,7 @@ export class SignalCrypto {
 
       return result;
     } catch (error) {
-      console.error('❌ [Backend] Error in buildSession:', error);
+      console.error('[Backend] Error in buildSession:', error);
       throw new Error(`Session building failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -197,7 +197,7 @@ export class SignalCrypto {
   ): Promise<CipherPacket> {
     await sodium.ready;
     
-    console.log('🔒 [Backend] Encrypting message with crypto_secretbox_easy:', {
+    console.log('[Backend] Encrypting message with crypto_secretbox_easy:', {
       messageLength: message.length,
       txKeyPreview: Array.from(sessionKeys.tx.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join('')
     });
@@ -216,7 +216,7 @@ export class SignalCrypto {
       n: toB64(nonce),
     };
 
-    console.log('✅ [Backend] Message encrypted successfully:', {
+    console.log('[Backend] Message encrypted successfully:', {
       ciphertextLength: result.c.length,
       nonceLength: result.n.length
     });
@@ -233,7 +233,7 @@ export class SignalCrypto {
   ): Promise<string> {
     await sodium.ready;
     
-    console.log('🔓 [Backend] Decrypting message with crypto_secretbox_open_easy:', {
+    console.log('[Backend] Decrypting message with crypto_secretbox_open_easy:', {
       ciphertextLength: packet.c.length,
       nonceLength: packet.n.length,
       rxKeyPreview: Array.from(sessionKeys.rx.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join('')
@@ -247,13 +247,13 @@ export class SignalCrypto {
       const decryptedBytes = sodium.crypto_secretbox_open_easy(ciphertext, nonce, sessionKeys.rx);
       const message = sodium.to_string(decryptedBytes);
       
-      console.log('✅ [Backend] Message decrypted successfully:', {
+      console.log('[Backend] Message decrypted successfully:', {
         messageLength: message.length
       });
       
       return message;
     } catch (error) {
-      console.error('❌ [Backend] Decryption failed:', {
+      console.error('[Backend] Decryption failed:', {
         rxKeyPreview: Array.from(sessionKeys.rx.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(''),
         error: error
       });

@@ -389,40 +389,34 @@ function App() {
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className="w-full h-screen bg-black overflow-hidden"
           >
-            {/* Chat View - Full Screen */}
-            <div style={{ height: '100vh', width: '100%', background: '#000000', position: 'relative' }}>
-              {/* Fixed Contact Name */}
-              <div style={{ 
-                position: 'fixed', 
-                top: '1rem', 
-                left: '50%', 
-                transform: 'translateX(-50%)', 
-                zIndex: 500,
-                color: '#ffffff',
-                fontSize: '1.5rem', 
-                fontFamily: 'SF Pro Rounded, SF Pro, -apple-system, BlinkMacSystemFont, sans-serif',
-                fontWeight: 600, 
-                letterSpacing: '0.02em', 
-                textAlign: 'center',
-                background: 'rgba(0, 0, 0, 0.8)',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                backdropFilter: 'blur(8px)',
-                textShadow: '0 0 10px rgba(255, 255, 255, 0.2), 0 0 20px rgba(255, 255, 255, 0.2), 0 0 30px rgba(255, 255, 255, 0.1)'
-              }}>
-                {selectedContactDisplayName || 'Chat'}
-              </div>
-
-              {/* Messages Component - Full Screen */}
-              {selectedContactHandle && (
-                <MessagingComponent
-                  currentUser={currentUser}
-                  contactHandle={selectedContactHandle}
-                  onClose={handleBackHome}
-                  minimal={true}
-                />
-              )}
+            {/* Fixed Contact Name */}
+            <div style={{ 
+              position: 'fixed', 
+              top: '1rem', 
+              left: '50%', 
+              transform: 'translateX(-50%)', 
+              zIndex: 1000,
+              color: '#ffffff',
+              fontSize: '1.5rem', 
+              fontFamily: 'SF Pro Rounded, SF Pro, -apple-system, BlinkMacSystemFont, sans-serif',
+              fontWeight: 600, 
+              letterSpacing: '0.02em', 
+              textAlign: 'center',
+              padding: '0.5rem 1rem',
+              textShadow: '0 2px 8px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.15)'
+            }}>
+              {selectedContactDisplayName || 'Chat'}
             </div>
+
+            {/* Messages Component - Full Screen */}
+            {selectedContactHandle && (
+              <MessagingComponent
+                currentUser={currentUser}
+                contactHandle={selectedContactHandle}
+                onClose={handleBackHome}
+                minimal={true}
+              />
+            )}
           </motion.div>
         )
       )}

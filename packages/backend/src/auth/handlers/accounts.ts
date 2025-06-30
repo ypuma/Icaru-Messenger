@@ -393,6 +393,69 @@ export async function healthCheck(
 }
 
 /**
+ * Delete account using recovery phrase
+ */
+export async function deleteAccountWithRecovery(
+  request: FastifyRequest<{ Body: { publicKey: string } }>,
+  reply: FastifyReply
+) {
+  try {
+    const { publicKey } = request.body;
+    
+    if (!publicKey) {
+      return reply.status(400).send({ error: 'Public key is required' });
+    }
+
+    // Validate public key format
+    const keyValidation = validatePublicKey(publicKey);
+    if (!keyValidation.valid) {
+      return reply.status(400).send({
+        error: 'Invalid public key',
+        message: keyValidation.error
+      });
+    }
+    
+    const normalizedPublicKey = keyValidation.normalizedKey || publicKey;
+
+    // Look up user by public key first
+    const user = await prismaClient.user.findFirst({
+      where: { publicKey: normalizedPublicKey },
+      select: {
+        id: true,
+        handle: true,
+        publicKey: true
+      }
+    });
+
+    if (!user) {
+      return reply.status(404).send({ 
+        error: 'Konto nicht gefunden',
+        message: 'Kein Konto mit diesem öffentlichen Schlüssel gefunden'
+      });
+    }
+
+    // Delete the account and all related data
+    await prismaClient.$transaction(async (tx: any) => {
+      await tx.user.delete({
+        where: { id: user.id }
+      });
+    });
+
+    logger.info(`Account deleted via recovery phrase: ${user.handle}`);
+    
+    return reply.send({
+      success: true,
+      message: 'Konto erfolgreich gelöscht',
+      deletedHandle: user.handle
+    });
+
+  } catch (error) {
+    logger.error('Error deleting account with recovery phrase:', error);
+    return reply.status(500).send({ error: 'Internal Server Error' });
+  }
+}
+
+/**
  * Look up account by public key for recovery purposes
  */
 export async function lookupAccountByPublicKey(
