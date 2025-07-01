@@ -221,15 +221,28 @@ export class SecureStorage {
    * Clear all data
    */
   async clearAllData(): Promise<void> {
+    if (!this.db) {
+      throw new Error('Secure storage not initialized');
+    }
+
     try {
-      const db = await this.getDB();
-      const tx = db.transaction(this.storeName, 'readwrite');
-      const store = tx.objectStore(this.storeName);
-      await store.clear();
-      await tx.done;
+      const transaction = this.db.transaction(['accounts'], 'readwrite');
+      const store = transaction.objectStore('accounts');
+      
+      await new Promise<void>((resolve, reject) => {
+        const request = store.clear();
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+        
+        // Handle transaction errors
+        transaction.onerror = () => reject(transaction.error);
+        transaction.onabort = () => reject(new Error('Transaction aborted'));
+      });
+      
       console.log('All data cleared from IndexedDB');
-    } catch (_error) {
-      console.error('Failed to clear data from IndexedDB');
+    } catch (error) {
+      console.error('Failed to clear data from IndexedDB:', error);
+      throw new Error('Failed to clear data');
     }
   }
 
@@ -356,6 +369,26 @@ class StorageManager {
 
   async initialize(password: string): Promise<void> {
     try {
+      // Check if we're in a cross-origin iframe
+      const isInIframe = window !== window.parent;
+      const isCrossOrigin = (() => {
+        try {
+          return isInIframe && !window.parent.location.hostname;
+        } catch (e) {
+          return true;
+        }
+      })();
+
+      // If we're in a cross-origin context, use fallback immediately
+      if (isCrossOrigin) {
+        console.warn('Cross-origin context detected, using fallback storage');
+        this.storage = new FallbackStorage(password);
+        await this.storage.initialize();
+        this.usingFallback = true;
+        console.log('✅ Using fallback localStorage storage');
+        return;
+      }
+
       // Try IndexedDB first
       this.storage = new SecureStorage({ password });
       await this.storage.initialize();

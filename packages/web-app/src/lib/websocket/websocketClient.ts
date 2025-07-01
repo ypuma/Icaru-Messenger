@@ -53,8 +53,20 @@ class WebSocketClient {
 
     return new Promise((resolve, reject) => {
       try {
-        const wsUrl = import.meta.env.VITE_WS_URL || 'ws://0.0.0.0:11401';
-        this.ws = new WebSocket(`${wsUrl}/ws`);
+        // Get the current hostname and protocol
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const hostname = window.location.hostname;
+        
+        // Use the same host as the current page in production, fallback to default in development
+        const wsUrl = hostname === 'localhost' || hostname === '0.0.0.0' 
+          ? (import.meta.env.VITE_WS_URL || 'ws://0.0.0.0:11401')
+          : `${protocol}//${hostname}`;
+
+        // Ensure we're connecting to /ws endpoint
+        const wsEndpoint = wsUrl.endsWith('/ws') ? wsUrl : `${wsUrl}/ws`;
+        
+        console.log('Connecting to WebSocket:', wsEndpoint);
+        this.ws = new WebSocket(wsEndpoint);
 
         this.ws.onopen = () => {
           console.log('WebSocket connected');

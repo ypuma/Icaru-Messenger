@@ -65,10 +65,25 @@ export default defineConfig({
     fs: {
       allow: ['..']
     },
-    // Removed proxy since using nginx reverse proxy
-    allowedHosts: [
-      'test.mendes.dev',
-      'icaru.systems',
-    ]
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_URL || 'https://0.0.0.0:11401',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/ws': {
+        target: process.env.VITE_WS_URL || 'wss://0.0.0.0:11401',
+        ws: true,
+        changeOrigin: true,
+        secure: false,
+      }
+    },
+    cors: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+      'Access-Control-Allow-Credentials': 'true'
+    }
   }
 })
