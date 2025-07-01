@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import path from 'path'; // Import path for alias resolution
+import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -70,6 +70,7 @@ export default defineConfig({
         target: process.env.VITE_API_URL || 'https://0.0.0.0:11401',
         changeOrigin: true,
         secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
       '/ws': {
         target: process.env.VITE_WS_URL || 'wss://0.0.0.0:11401',
@@ -83,7 +84,30 @@ export default defineConfig({
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
       'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
-      'Access-Control-Allow-Credentials': 'true'
+      'Access-Control-Allow-Credentials': 'true',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
+    },
+    hmr: {
+      host: 'icaru.systems'
+    }
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 11402,
+    strictPort: true,
+    cors: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+      'Access-Control-Allow-Credentials': 'true',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
     }
   }
 })

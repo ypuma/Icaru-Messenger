@@ -56,19 +56,31 @@ class WebSocketClient {
         // Get the current hostname and protocol
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const hostname = window.location.hostname;
+        const port = import.meta.env.PROD ? '' : ':11401';
         
-        // Use the same host as the current page in production, fallback to default in development
-        const wsUrl = hostname === 'localhost' || hostname === '0.0.0.0' 
-          ? (import.meta.env.VITE_WS_URL || 'ws://0.0.0.0:11401')
-          : `${protocol}//${hostname}`;
+        // Construct WebSocket URL based on environment
+        let wsUrl: string;
+        if (hostname === 'localhost' || hostname === '0.0.0.0') {
+          // Development environment
+          wsUrl = import.meta.env.VITE_WS_URL || `ws://0.0.0.0:11401/ws`;
+        } else {
+          // Production environment - use same host as the page
+          wsUrl = `${protocol}//${hostname}${port}/ws`;
+        }
+        
+        console.log('Connecting to WebSocket:', wsUrl);
+        this.ws = new WebSocket(wsUrl);
 
-        // Ensure we're connecting to /ws endpoint
-        const wsEndpoint = wsUrl.endsWith('/ws') ? wsUrl : `${wsUrl}/ws`;
-        
-        console.log('Connecting to WebSocket:', wsEndpoint);
-        this.ws = new WebSocket(wsEndpoint);
+        // Set up connection timeout
+        const connectionTimeout = setTimeout(() => {
+          if (this.ws?.readyState !== WebSocket.OPEN) {
+            this.ws?.close();
+            reject(new Error('WebSocket connection timeout'));
+          }
+        }, 10000); // 10 second timeout
 
         this.ws.onopen = () => {
+          clearTimeout(connectionTimeout);
           console.log('WebSocket connected');
           this.connectionStatus.connected = true;
           this.reconnectAttempts = 0;
@@ -92,25 +104,25 @@ class WebSocketClient {
             this.startHeartbeat();
             resolve();
           } else if (message.type === 'auth_error') {
-            reject(new Error('Authentication failed'));
+            reject(new Error(message.data?.error || 'Authentication failed'));
           }
-        };
-
-        this.ws.onclose = () => {
-          console.log('WebSocket disconnected');
-          this.connectionStatus.connected = false;
-          this.connectionStatus.authenticated = false;
-          this.notifyConnectionHandlers();
-          this.stopHeartbeat();
-          this.attemptReconnect();
         };
 
         this.ws.onerror = (error) => {
           console.error('WebSocket error:', error);
-          reject(error);
+          reject(new Error('WebSocket connection error'));
+        };
+
+        this.ws.onclose = (event) => {
+          console.log('WebSocket closed:', event.code, event.reason);
+          this.connectionStatus.connected = false;
+          this.connectionStatus.authenticated = false;
+          this.notifyConnectionHandlers();
+          this.handleReconnect();
         };
 
       } catch (error) {
+        console.error('Failed to establish WebSocket connection:', error);
         reject(error);
       }
     });
@@ -258,29 +270,26 @@ class WebSocketClient {
     }
   }
 
-  private attemptReconnect() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts || !this.sessionToken || !this.sessionId) {
-      return;
-    }
-
-    this.connectionStatus.reconnecting = true;
-    this.notifyConnectionHandlers();
-
-    setTimeout(() => {
-      this.reconnectAttempts++;
-      console.log(`Attempting reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
-      
-      this.connect(this.sessionToken!, this.sessionId!)
-        .then(() => {
-          this.connectionStatus.reconnecting = false;
-          this.notifyConnectionHandlers();
-        })
-        .catch(() => {
-          this.connectionStatus.reconnecting = false;
-          this.notifyConnectionHandlers();
-          this.attemptReconnect();
-        });
-    }, this.reconnectDelay * Math.pow(2, this.reconnectAttempts)); // Exponential backoff
+  private async handleReconnect(): Promise<void> {
+    this.stopHeartbeat();
+    
+    // Exponential backoff for reconnection attempts
+    const backoffTime = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000); // Max 30 seconds
+    this.reconnectAttempts++;
+    
+    console.log(`Attempting reconnection in ${backoffTime}ms (attempt ${this.reconnectAttempts})`);
+    
+    setTimeout(async () => {
+      if (this.sessionToken && this.sessionId) {
+        try {
+          await this.connect(this.sessionToken, this.sessionId);
+        } catch (error) {
+          console.error('Reconnection failed:', error);
+          // Continue reconnection attempts
+          this.handleReconnect();
+        }
+      }
+    }, backoffTime);
   }
 }
 
