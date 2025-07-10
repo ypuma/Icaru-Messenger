@@ -6,7 +6,7 @@ import prisma from '@/db';
 // Validation schemas - Updated to enforce E2EE
 const sendMessageSchema = z.object({
   receiverHandle: z.string(),
-  content: z.string().min(1), // This should be "[Encrypted Message]" for E2EE
+  content: z.string().min(1),
   messageType: z.string().default('TEXT'),
   replyToId: z.string().optional(),
   metadata: z.string().optional(),
@@ -206,7 +206,7 @@ export const getMessages = async (
         const metadata = msg.metadata ? JSON.parse(msg.metadata) : null;
         return {
           id: msg.id,
-          content: msg.content, // This should always be "[Encrypted Message]"
+          content: msg.content,
           messageType: msg.messageType,
           timestamp: msg.timestamp,
           senderHandle: msg.sender.handle,

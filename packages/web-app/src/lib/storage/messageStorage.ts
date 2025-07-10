@@ -465,7 +465,7 @@ class MessageStorage {
     }
 
     await tx.done;
-    console.log(`🗑️ Deleted all messages for conversation: ${conversationId}`);
+          console.log(`Deleted all messages for conversation: ${conversationId}`);
   }
 
   /**

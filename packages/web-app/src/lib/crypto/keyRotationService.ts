@@ -40,7 +40,7 @@ export class KeyRotationService {
    */
   configure(config: Partial<RotationConfig>): void {
     this.config = { ...this.config, ...config };
-    console.log('🔧 Key rotation service configured:', this.config);
+    console.log('Key rotation service configured:', this.config);
   }
 
   /**
@@ -53,7 +53,7 @@ export class KeyRotationService {
       try {
         await this.performTimeBasedRotation(address);
       } catch (error) {
-        console.error(`❌ Time-based rotation failed for ${address}:`, error);
+        console.error(`Time-based rotation failed for ${address}:`, error);
       }
     }, this.config.timeInterval);
 
@@ -63,7 +63,7 @@ export class KeyRotationService {
       lastRotation: new Date()
     });
 
-    console.log(`⏰ Started time-based key rotation for ${address} (interval: ${this.config.timeInterval}ms)`);
+          console.log(`Started time-based key rotation for ${address} (interval: ${this.config.timeInterval}ms)`);
   }
 
   /**
@@ -74,7 +74,7 @@ export class KeyRotationService {
     if (existing) {
       clearInterval(existing.timer);
       this.rotationTimers.delete(address);
-      console.log(`⏹️ Stopped key rotation for ${address}`);
+      console.log(`Stopped key rotation for ${address}`);
     }
   }
 
@@ -85,7 +85,7 @@ export class KeyRotationService {
     for (const [address] of this.rotationTimers) {
       this.stopRotation(address);
     }
-    console.log('⏹️ Stopped all key rotations');
+    console.log('Stopped all key rotations');
   }
 
   /**
@@ -96,7 +96,7 @@ export class KeyRotationService {
                          ratchetState.sendMessageNumber % this.config.messageInterval === 0;
 
     if (shouldRotate) {
-      console.log(`🔄 Performing message-based key rotation for ${address} at message ${ratchetState.sendMessageNumber}`);
+              console.log(`Performing message-based key rotation for ${address} at message ${ratchetState.sendMessageNumber}`);
       const rotatedState = await SignalCrypto.rotateKeys(ratchetState, this.config.messageInterval);
       await browserStorage.storeRatchetState(address, rotatedState);
       return rotatedState;
@@ -111,7 +111,7 @@ export class KeyRotationService {
   private async performTimeBasedRotation(address: string): Promise<void> {
     const ratchetState = await browserStorage.getRatchetState(address);
     if (!ratchetState) {
-      console.log(`⚠️ No ratchet state found for ${address}, skipping time-based rotation`);
+              console.log(`No ratchet state found for ${address}, skipping time-based rotation`);
       return;
     }
 
@@ -123,7 +123,7 @@ export class KeyRotationService {
       timerInfo.lastRotation = new Date();
     }
 
-    console.log(`🔄 Performed time-based key rotation for ${address}`);
+            console.log(`Performed time-based key rotation for ${address}`);
   }
 
   /**
@@ -141,9 +141,9 @@ export class KeyRotationService {
         await browserStorage.storeRatchetState(address, cleanedState);
       }
       
-      console.log(`✅ Global cleanup completed for ${allStates.size} conversations`);
+      console.log(`Global cleanup completed for ${allStates.size} conversations`);
     } catch (error) {
-      console.error('❌ Global cleanup failed:', error);
+              console.error('Global cleanup failed:', error);
     }
   }
 
@@ -151,11 +151,11 @@ export class KeyRotationService {
    * Get all stored ratchet states (helper method)
    */
   private async getAllRatchetStates(): Promise<Map<string, RatchetState>> {
-    // This would need to be implemented based on the storage provider's capabilities
+
     // For now, we'll return an empty map and improve this when we have better storage introspection
     const states = new Map<string, RatchetState>();
     
-    // Note: In a real implementation, we'd need a way to enumerate all stored ratchet states
+
     // This could be done by maintaining an index or by scanning the storage
     
     return states;
@@ -202,7 +202,7 @@ export class KeyRotationService {
    * Emergency rotation - immediately rotate keys for a conversation
    */
   async emergencyRotation(address: string): Promise<void> {
-    console.log(`🚨 Performing emergency key rotation for ${address}`);
+            console.log(`Performing emergency key rotation for ${address}`);
     
     const ratchetState = await browserStorage.getRatchetState(address);
     if (!ratchetState) {
@@ -218,7 +218,7 @@ export class KeyRotationService {
       timerInfo.lastRotation = new Date();
     }
 
-    console.log(`✅ Emergency key rotation completed for ${address}`);
+            console.log(`Emergency key rotation completed for ${address}`);
   }
 
   /**
@@ -226,7 +226,7 @@ export class KeyRotationService {
    */
   shutdown(): void {
     this.stopAllRotations();
-    console.log('🔒 Key rotation service shutdown complete');
+    console.log('Key rotation service shutdown complete');
   }
 }
 

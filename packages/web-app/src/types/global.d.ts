@@ -1,9 +1,8 @@
 interface Window {
-    // Add any custom window properties here
+    
 }
 
-// This is a simplified message structure.
-// In a real app, you might have more fields.
+
 interface Message {
     id: string;
     content: string;

@@ -1,22 +1,16 @@
 import crypto from 'crypto';
 
-/**
- * Generate a secure session token
- */
+
 export const generateSessionToken = (): string => {
   return crypto.randomBytes(32).toString('hex');
 };
 
-/**
- * Generate a secure API key
- */
+
 export const generateApiKey = (): string => {
   return crypto.randomBytes(64).toString('hex');
 };
 
-/**
- * Generate a secure handle (6 character alphanumeric)
- */
+
 export const generateHandle = (): string => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz23456789';
   let result = '';
@@ -26,9 +20,7 @@ export const generateHandle = (): string => {
   return result;
 };
 
-/**
- * Generate a secure device ID
- */
+
 export const generateDeviceId = (): string => {
   return crypto.randomUUID();
 };

@@ -187,7 +187,7 @@ const MessagingComponent: React.FC<MessagingComponentProps> = ({
       setConnectionStatus(webSocketClient.getConnectionStatus());
 
     } catch (err) {
-      console.error('❌ Failed to initialize chat:', err);
+      console.error('Failed to initialize chat:', err);
       setEncryptionError('Critical error during chat initialization.');
     }
   };

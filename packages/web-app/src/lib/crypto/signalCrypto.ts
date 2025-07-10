@@ -47,7 +47,7 @@ export class SignalCrypto {
   static async initialize(): Promise<void> {
     await sodium.ready;
     await PerfectForwardSecrecy.initialize();
-    console.log('🔐 Libsodium and PFS initialized successfully');
+    console.log('Libsodium and PFS initialized successfully');
   }
 
   /**
@@ -55,13 +55,13 @@ export class SignalCrypto {
    */
   static async createIdentity(): Promise<KeyPair> {
     await sodium.ready;
-    console.log('🔑 Generating new identity key pair...');
+    console.log('Generating new identity key pair...');
     
     const keyPair = sodium.crypto_kx_keypair();
     const publicKey = sodium.to_base64(keyPair.publicKey);
     const privateKey = sodium.to_base64(keyPair.privateKey);
     
-    console.log('✅ Identity key pair generated:', {
+    console.log('Identity key pair generated:', {
       publicKeyPreview: publicKey.slice(0, 16) + '...',
       privateKeyLength: privateKey.length
     });
@@ -76,7 +76,7 @@ export class SignalCrypto {
    * Generates a new pre-key pair (same as identity for simplicity).
    */
   static async createPreKey(): Promise<KeyPair> {
-    console.log('🔑 Generating new pre-key pair...');
+    console.log('Generating new pre-key pair...');
     return this.createIdentity();
   }
 
@@ -85,7 +85,7 @@ export class SignalCrypto {
    */
   static async signPreKey(preKey: KeyPair, identityKey: KeyPair): Promise<string> {
     await sodium.ready;
-    console.log('✍️ Signing pre-key with identity key...');
+    console.log('Signing pre-key with identity key...');
     
     const preKeyBytes = sodium.from_base64(preKey.publicKey);
     const identityPrivateKeyBytes = sodium.from_base64(identityKey.privateKey);
@@ -94,7 +94,7 @@ export class SignalCrypto {
     const signingKeyPair = sodium.crypto_sign_seed_keypair(identityPrivateKeyBytes.slice(0, 32));
     const signature = sodium.crypto_sign_detached(preKeyBytes, signingKeyPair.privateKey);
     
-    console.log('✅ Pre-key signed successfully');
+    console.log('Pre-key signed successfully');
     return sodium.to_base64(signature);
   }
 
@@ -118,7 +118,7 @@ export class SignalCrypto {
     await sodium.ready;
 
     try {
-      console.log('🔗 Building crypto_kx session...', {
+      console.log('Building crypto_kx session...', {
         role: isClient ? 'CLIENT' : 'SERVER',
         ourKeyLength: ourIdentityKey.privateKey.length,
         theirKeyPreview: theirKeyBundle.identityKey.slice(0, 20) + '...'
@@ -131,18 +131,18 @@ export class SignalCrypto {
 
       // Handle different key formats (hex from account creation vs base64 from createIdentity)
       if (ourIdentityKey.privateKey.length > 50) { // Likely hex format
-        console.log('🔄 Converting hex keys to Uint8Array');
+        console.log('Converting hex keys to Uint8Array');
         ourPrivateKey = await this.convertHexToUint8Array(ourIdentityKey.privateKey);
         ourPublicKey = await this.convertHexToUint8Array(ourIdentityKey.publicKey);
         theirPublicKey = this.base64ToBytes(theirKeyBundle.identityKey);
       } else {
-        console.log('🔄 Using base64 keys directly');
+        console.log('Using base64 keys directly');
         ourPrivateKey = this.base64ToBytes(ourIdentityKey.privateKey);
         ourPublicKey = this.base64ToBytes(ourIdentityKey.publicKey);
         theirPublicKey = this.base64ToBytes(theirKeyBundle.identityKey);
       }
 
-      console.log('🔧 Key sizes for crypto_kx:', {
+      console.log('Key sizes for crypto_kx:', {
         ourPrivateKeyLength: ourPrivateKey.length,
         ourPublicKeyLength: ourPublicKey.length,
         theirPublicKeyLength: theirPublicKey.length
@@ -154,11 +154,11 @@ export class SignalCrypto {
       if (isClient) {
         // Client side: generates (rx, tx) where rx is for receiving from server, tx for sending to server
         sessionKeys = sodium.crypto_kx_client_session_keys(ourPublicKey, ourPrivateKey, theirPublicKey);
-        console.log('🔑 Generated CLIENT session keys');
+        console.log('Generated CLIENT session keys');
       } else {
         // Server side: generates (rx, tx) where rx is for receiving from client, tx for sending to client
         sessionKeys = sodium.crypto_kx_server_session_keys(ourPublicKey, ourPrivateKey, theirPublicKey);
-        console.log('🔑 Generated SERVER session keys');
+        console.log('Generated SERVER session keys');
       }
 
       const result: SessionKeys = {
@@ -166,7 +166,7 @@ export class SignalCrypto {
         rx: sessionKeys.sharedRx, // Key for decrypting their incoming messages
       };
 
-      console.log('✅ Session keys established:', {
+      console.log('Session keys established:', {
         role: isClient ? 'CLIENT' : 'SERVER',
         txKeyPreview: Array.from(result.tx.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(''),
         rxKeyPreview: Array.from(result.rx.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join('')
@@ -174,7 +174,7 @@ export class SignalCrypto {
 
       return result;
     } catch (error) {
-      console.error('❌ Error in buildSession:', error);
+      console.error('Error in buildSession:', error);
       throw new Error(`Session building failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -188,7 +188,7 @@ export class SignalCrypto {
     authToken: string,
     isClient?: boolean
   ): Promise<Session> {
-    console.log('🔄 Establishing session with:', partnerHandle);
+    console.log('Establishing session with:', partnerHandle);
     
     const response = await fetch(`${BASE_URL}/api/keys/bundle/${encodeURIComponent(partnerHandle)}`, {
       headers: { 
@@ -202,7 +202,7 @@ export class SignalCrypto {
     }
     
     const theirKeyBundle: SignalKeyBundle = await response.json();
-    console.log('📦 Key bundle received:', {
+    console.log('Key bundle received:', {
       partnerHandle,
       identityKey: theirKeyBundle.identityKey.slice(0, 20) + '...',
       signedPreKey: theirKeyBundle.signedPreKey.key.slice(0, 20) + '...'
@@ -223,7 +223,7 @@ export class SignalCrypto {
       role: role
     };
 
-    console.log('🔑 Session established:', {
+    console.log('Session established:', {
       partnerHandle,
       role: session.role
     });
@@ -240,7 +240,7 @@ export class SignalCrypto {
   ): Promise<CipherPacket> {
     await sodium.ready;
     
-    console.log('🔒 Encrypting message with crypto_secretbox_easy:', {
+    console.log('Encrypting message with crypto_secretbox_easy:', {
       messageLength: message.length,
       txKeyPreview: Array.from(sessionKeys.tx.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join('')
     });
@@ -259,7 +259,7 @@ export class SignalCrypto {
       n: toB64(nonce),
     };
 
-    console.log('✅ Message encrypted successfully:', {
+    console.log('Message encrypted successfully:', {
       ciphertextLength: result.c.length,
       nonceLength: result.n.length
     });
@@ -279,7 +279,7 @@ export class SignalCrypto {
     const cipherStr = packet.c;
     const nonceStr  = packet.n;
 
-    console.log('🔓 Decrypting message with crypto_secretbox_open_easy:', {
+    console.log('Decrypting message with crypto_secretbox_open_easy:', {
       ciphertextLength: cipherStr.length,
       nonceLength: nonceStr.length,
       rxKeyPreview: Array.from(sessionKeys.rx.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join('')
@@ -297,13 +297,13 @@ export class SignalCrypto {
       const decryptedBytes = sodium.crypto_secretbox_open_easy(ciphertext, nonce, sessionKeys.rx);
       const message = sodium.to_string(decryptedBytes);
       
-      console.log('✅ Message decrypted successfully:', {
+      console.log('Message decrypted successfully:', {
         messageLength: message.length
       });
       
       return message;
     } catch (error) {
-      console.error('❌ Decryption failed:', {
+      console.error('Decryption failed:', {
         rxKeyPreview: Array.from(sessionKeys.rx.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(''),
         error: error
       });
@@ -337,7 +337,7 @@ export class SignalCrypto {
 
       // Fallback to base64 parsing (handles both standard and URL-safe w/ or w/o padding)
       try {
-        // First try URLSAFE without padding (default output of sodium.to_base64 in this codebase)
+    
         return sodium.from_base64(key, sodium.base64_variants.URLSAFE_NO_PADDING);
       } catch (_) {
         // If that fails, attempt original (+/ with optional padding)
@@ -353,7 +353,7 @@ export class SignalCrypto {
       if (ourKeyBytes[i] !== theirKeyBytes[i]) {
         const role = ourKeyBytes[i] < theirKeyBytes[i] ? 'CLIENT' : 'SERVER';
         console.log(
-          '🎭 Determining role - diff at index',
+          'Determining role - diff at index',
           i,
           {
             ourByte: ourKeyBytes[i],
@@ -365,7 +365,7 @@ export class SignalCrypto {
       }
     }
     // Keys identical (extremely unlikely) – default to CLIENT
-    console.log('🎭 Role determined: CLIENT (keys identical)');
+    console.log('Role determined: CLIENT (keys identical)');
     return true;
   }
 
@@ -373,7 +373,7 @@ export class SignalCrypto {
     // Normalize padding
     const normalized = data.replace(/=/g, '');
     try {
-      // First try URLSAFE (default output of sodium.to_base64)
+  
       return sodium.from_base64(normalized, sodium.base64_variants.URLSAFE_NO_PADDING);
     } catch (_) {
       // Fallback to ORIGINAL (includes + / and optional padding)
@@ -388,33 +388,19 @@ export class SignalCrypto {
    * The role determines how the initial chain keys are assigned.
    */
   static async initializeRatchet(session: Session): Promise<RatchetState> {
-    // Combine tx and rx to create a master session key for the KDF.
-    // The order MUST be deterministic. The CLIENT concatenates (tx, rx)
-    // and the SERVER concatenates (rx, tx). Since the client's tx is the
-    // server's rx and vice-versa, both sides will produce the IDENTICAL
-    // combined key.
     const combinedKey = new Uint8Array(64);
     if (session.role === 'CLIENT') {
-      // Order for CLIENT: [tx, rx]
       combinedKey.set(session.keys.tx, 0);
       combinedKey.set(session.keys.rx, 32);
-      console.log('🔄 Initializing ratchet as CLIENT, key order: tx, rx');
+      console.log('Initializing ratchet as CLIENT, key order: tx, rx');
     } else { // SERVER
-      // Order for SERVER: [rx, tx]
       combinedKey.set(session.keys.rx, 0);
       combinedKey.set(session.keys.tx, 32);
-      console.log('🔄 Initializing ratchet as SERVER, key order: rx, tx');
+      console.log('Initializing ratchet as SERVER, key order: rx, tx');
     }
     
-    // Use a hash of the combined key as the true session key for PFS initialization.
-    // This key is now identical for both parties.
     const sessionKey = sodium.crypto_generichash(32, combinedKey);
-    
-    // Initialize the base ratchet state. This state is now IDENTICAL for both parties.
     const baseRatchetState = await PerfectForwardSecrecy.initializeRatchet(sessionKey);
-    
-    // The role determines which chain is for sending and which for receiving
-    // to ensure they are mirrored between the two parties.
     const initialState: RatchetState = {
       ...baseRatchetState,
       sendingChainKey: session.role === 'CLIENT' ? baseRatchetState.sendingChainKey : baseRatchetState.receivingChainKey,
@@ -425,7 +411,7 @@ export class SignalCrypto {
     PerfectForwardSecrecy.zeroizeKey(sessionKey);
     PerfectForwardSecrecy.zeroizeKey(combinedKey);
     
-    console.log('🔄 Ratchet state initialized for PFS');
+    console.log('Ratchet state initialized for PFS');
     return initialState;
   }
 
@@ -459,7 +445,7 @@ export class SignalCrypto {
   ): Promise<{ cipherPacket: CipherPacket; newRatchetState: RatchetState }> {
     const result = await PerfectForwardSecrecy.encryptWithPFS(message, ratchetState);
     
-    console.log('🔒 Message encrypted with PFS:', {
+    console.log('Message encrypted with PFS:', {
       messageNumber: result.cipherPacket.messageNumber,
       previousChainLength: result.cipherPacket.previousChainLength
     });
@@ -476,7 +462,7 @@ export class SignalCrypto {
   ): Promise<{ message: string; newRatchetState: RatchetState }> {
     const result = await PerfectForwardSecrecy.decryptWithPFS(cipherPacket, ratchetState);
     
-    console.log('🔓 Message decrypted with PFS:', {
+    console.log('Message decrypted with PFS:', {
       messageNumber: cipherPacket.messageNumber,
       messageLength: result.message.length
     });

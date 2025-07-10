@@ -118,10 +118,10 @@ async function startServer() {
       host: config.HOST,
     });
 
-    logger.info(`🚀 Secure Messenger API server running at ${address}`);
-    logger.info(`📊 Health check available at ${address}/health`);
-    logger.info(`🔌 WebSocket endpoint available at ${address}/ws`);
-    logger.info(`🌐 CORS enabled for: ${config.CORS_ORIGIN}`);
+      logger.info(`Secure Messenger API server running at ${address}`);
+  logger.info(`Health check available at ${address}/health`);
+    logger.info(`WebSocket endpoint available at ${address}/ws`);
+    logger.info(`CORS enabled for: ${config.CORS_ORIGIN}`);
 
   } catch (error) {
     logger.error('Failed to start server:', error);

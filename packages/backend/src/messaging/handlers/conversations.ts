@@ -83,9 +83,7 @@ export const getConversations = async (
   }
 };
 
-/**
- * Create or get conversation with a contact
- */
+
 export const createConversation = async (
   request: FastifyRequest<{ Body: { contactHandle: string } }>,
   reply: FastifyReply

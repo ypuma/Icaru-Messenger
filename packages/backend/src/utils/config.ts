@@ -65,7 +65,7 @@ const createConfig = (): Config => {
   const result = configSchema.safeParse(env);
   
   if (!result.success) {
-    console.error('❌ Invalid environment configuration:');
+    console.error('Invalid environment configuration:');
     console.error(result.error.flatten().fieldErrors);
     process.exit(1);
   }

@@ -57,10 +57,10 @@ class SessionManager {
           };
           this.sessionCache.set(userHandle, session);
         }
-        console.log('🔄 Restored', this.sessionCache.size, 'persisted sessions from storage');
+        console.log('Restored', this.sessionCache.size, 'persisted sessions from storage');
       }
     } catch (error) {
-      console.error('❌ Failed to load persisted sessions:', error);
+              console.error('Failed to load persisted sessions:', error);
       // Clear corrupted data
       localStorage.removeItem(this.STORAGE_KEY);
     }
@@ -82,9 +82,9 @@ class SessionManager {
         };
       }
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(serializable));
-      console.log('💾 Persisted', this.sessionCache.size, 'sessions to storage');
+              console.log('Persisted', this.sessionCache.size, 'sessions to storage');
     } catch (error) {
-      console.error('❌ Failed to persist sessions:', error);
+      console.error('Failed to persist sessions:', error);
     }
   }
 
@@ -118,7 +118,7 @@ class SessionManager {
       return pending;
     }
 
-    console.log('🔄 Creating new session with:', userHandle);
+          console.log('Creating new session with:', userHandle);
 
     const ourIdentityKey: KeyPair = {
       publicKey: currentUser.publicKey,
@@ -142,7 +142,7 @@ class SessionManager {
         // Clean up the pending map
         this.pendingSessionPromises.delete(userHandle);
 
-        console.log('✅ Session cached for:', userHandle, 'cache size:', this.sessionCache.size);
+        console.log('Session cached for:', userHandle, 'cache size:', this.sessionCache.size);
         return newSession;
       })
       .catch((err) => {
@@ -182,7 +182,7 @@ class SessionManager {
   removeSession(userHandle: string): void {
     this.sessionCache.delete(userHandle);
     this.persistSessions();
-    console.log('🗑️ Session removed for:', userHandle);
+    console.log('Session removed for:', userHandle);
   }
 
   /**

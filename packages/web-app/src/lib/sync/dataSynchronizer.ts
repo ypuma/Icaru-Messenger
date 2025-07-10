@@ -116,10 +116,10 @@ class DataSynchronizer {
     console.log('Starting data synchronization...');
 
     try {
-      // First, pull updates from server
+  
       await this.pullUpdatesFromServer();
 
-      // Then, push queued items to server
+  
       await this.pushQueuedItems();
 
       // Update last sync timestamp

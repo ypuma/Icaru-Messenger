@@ -3,10 +3,7 @@ import { Buffer } from 'buffer';
 import sodium from 'libsodium-wrappers';
 
 
-/**
- * Generate a new 12-word BIP39 mnemonic phrase.
- * @returns {string} A 12-word mnemonic phrase.
- */
+
 export const generateMnemonic = (): string => {
   return bip39.generateMnemonic(128);
 };
@@ -84,11 +81,7 @@ export const deriveHandleFromPublicKey = (publicKey: string): string => {
   return `${handleLetters}-${handleNumbers}`;
 };
 
-/**
- * Formats a handle (now handles are already formatted by deriveHandleFromPublicKey).
- * @param {string} handle - The handle.
- * @returns {string} The formatted handle.
- */
+
 export const formatHandle = (handle: string): string => {
   // Handle is already formatted as ABC-123 by deriveHandleFromPublicKey
   return handle;

@@ -55,7 +55,7 @@ export class SignalCrypto {
    */
   static async initialize(): Promise<void> {
     await sodium.ready;
-    console.log('🔐 [Backend] Libsodium initialized successfully');
+    console.log('[Backend] Libsodium initialized successfully');
   }
 
   /**
@@ -151,7 +151,7 @@ export class SignalCrypto {
       // Decode partner public-key (accept both URLSAFE and ORIGINAL variants)
       theirPublicKey = this.base64ToBytes(theirKeyBundle.identityKey);
 
-      console.log('🔧 [Backend] Key sizes for crypto_kx:', {
+      console.log('[Backend] Key sizes for crypto_kx:', {
         ourPrivateKeyLength: ourPrivateKey.length,
         ourPublicKeyLength: ourPublicKey.length,
         theirPublicKeyLength: theirPublicKey.length
@@ -272,16 +272,16 @@ export class SignalCrypto {
     // Compare bytes to determine who is client (lower key) vs server (higher key)
     for (let i = 0; i < Math.min(ourKeyBytes.length, theirKeyBytes.length); i++) {
       if (ourKeyBytes[i] < theirKeyBytes[i]) {
-        console.log('🎭 [Backend] Role determined: CLIENT (our key is lower)');
+        console.log('[Backend] Role determined: CLIENT (our key is lower)');
         return true; // We are client
       } else if (ourKeyBytes[i] > theirKeyBytes[i]) {
-        console.log('🎭 [Backend] Role determined: SERVER (our key is higher)');
+        console.log('[Backend] Role determined: SERVER (our key is higher)');
         return false; // We are server
       }
     }
     
     // Keys are equal (very unlikely), default to client
-    console.log('🎭 [Backend] Role determined: CLIENT (keys equal, defaulting)');
+            console.log('[Backend] Role determined: CLIENT (keys equal, defaulting)');
     return true;
   }
 

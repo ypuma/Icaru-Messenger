@@ -35,9 +35,9 @@ export class SimplifiedCrypto {
   private async initializeSignal() {
     if (libsignal && (libsignal as any).IdentityKeyPair) {
       this.signalAvailable = true;
-      console.log('✅ Signal Protocol library loaded successfully');
+      console.log('Signal Protocol library loaded successfully');
     } else {
-      console.warn('⚠️ Signal Protocol library not available, using fallback Web Crypto API');
+      console.warn('Signal Protocol library not available, using fallback Web Crypto API');
     }
   }
 
@@ -222,7 +222,6 @@ export class SimplifiedCrypto {
     );
   }
 
-  // Placeholder for future Signal encryption/decryption methods
 }
 
 export const simplifiedCrypto = SimplifiedCrypto.getInstance(); 

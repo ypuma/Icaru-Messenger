@@ -28,9 +28,7 @@ export interface SessionData {
   expiresAt: Date;
 }
 
-/**
- * Create a new user session
- */
+
 export const createSession = async (
   request: FastifyRequest<{ Body: typeof sessionCreateSchema._type }>,
   reply: FastifyReply

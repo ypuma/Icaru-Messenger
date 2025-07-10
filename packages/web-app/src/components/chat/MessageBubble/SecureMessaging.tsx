@@ -71,7 +71,7 @@ const SecureMessaging: React.FC = () => {
         setContacts(JSON.parse(savedContacts));
       }
 
-      // In a real app, fetch from API
+  
       // const response = await fetch('/api/contacts');
       // const contactsData = await response.json();
       // setContacts(contactsData);
@@ -80,7 +80,6 @@ const SecureMessaging: React.FC = () => {
     }
   };
 
-  // Function kept for future API integration
   // const addContact = async (contactHandle: string, publicKey: string) => {
   //   try {
   //     const newContact: Contact = {
@@ -94,7 +93,6 @@ const SecureMessaging: React.FC = () => {
   //     setContacts(updatedContacts);
   //     localStorage.setItem('secmes_contacts', JSON.stringify(updatedContacts));
 
-  //     // In a real app, save to API
   //     // await fetch('/api/contacts', {
   //     //   method: 'POST',
   //     //   headers: { 'Content-Type': 'application/json' },
@@ -190,7 +188,6 @@ const SecureMessaging: React.FC = () => {
         signature
       };
 
-      // In a real app, send to server
       // await fetch('/api/messages', {
       //   method: 'POST',
       //   headers: { 'Content-Type': 'application/json' },
@@ -285,7 +282,6 @@ const SecureMessaging: React.FC = () => {
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Function kept for future use
   // const formatDate = (timestamp: number) => {
   //   return new Date(timestamp).toLocaleDateString();
   // };

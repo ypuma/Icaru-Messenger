@@ -24,7 +24,7 @@ export class PFSIntegration {
    */
   static async initializePFS(address: string, session: Session): Promise<void> {
     try {
-      console.log(`🔄 Initializing PFS for ${address}`);
+      console.log(`Initializing PFS for ${address}`);
       
       // Create ratchet state from session keys
       const ratchetState = await SignalCrypto.initializeRatchet(session);
@@ -43,9 +43,9 @@ export class PFSIntegration {
       // Start automatic key rotation
       keyRotationService.startRotation(address);
       
-      console.log(`✅ PFS initialized for ${address}`);
+      console.log(`PFS initialized for ${address}`);
     } catch (error) {
-      console.error(`❌ Failed to initialize PFS for ${address}:`, error);
+      console.error(`Failed to initialize PFS for ${address}:`, error);
       throw error;
     }
   }
@@ -97,14 +97,14 @@ export class PFSIntegration {
         previousChainLength: result.cipherPacket.previousChainLength || 0
       };
       
-      console.log(`🔒 Message encrypted with PFS for ${address}:`, {
+      console.log(`Message encrypted with PFS for ${address}:`, {
         messageNumber: pfsMessage.messageNumber,
         chainLength: pfsMessage.previousChainLength
       });
       
       return pfsMessage;
     } catch (error) {
-      console.error(`❌ Failed to encrypt message for ${address}:`, error);
+      console.error(`Failed to encrypt message for ${address}:`, error);
       throw error;
     }
   }
@@ -147,14 +147,14 @@ export class PFSIntegration {
       // Store updated ratchet state
       await browserStorage.storeRatchetState(address, result.newRatchetState);
       
-      console.log(`🔓 Message decrypted with PFS for ${address}:`, {
+      console.log(`Message decrypted with PFS for ${address}:`, {
         messageNumber: pfsMessage.messageNumber,
         messageLength: result.message.length
       });
       
       return result.message;
     } catch (error) {
-      console.error(`❌ Failed to decrypt message for ${address}:`, error);
+      console.error(`Failed to decrypt message for ${address}:`, error);
       throw error;
     }
   }
@@ -182,7 +182,7 @@ export class PFSIntegration {
     
     // Update persistent storage
     await browserStorage.storeRatchetState(address, newRatchetState);
-    console.log(`🔄 Ratchet state updated for ${address} after history decryption.`);
+    console.log(`Ratchet state updated for ${address} after history decryption.`);
   }
 
   /**
@@ -238,7 +238,7 @@ export class PFSIntegration {
    * Emergency key rotation for an address
    */
   static async emergencyRotation(address: string): Promise<void> {
-    console.log(`🚨 Initiating emergency key rotation for ${address}`);
+    console.log(`Initiating emergency key rotation for ${address}`);
     
     const sessionData = this.sessions.get(address);
     if (sessionData) {
@@ -251,7 +251,7 @@ export class PFSIntegration {
     // Trigger service-level emergency rotation
     await keyRotationService.emergencyRotation(address);
     
-    console.log(`✅ Emergency key rotation completed for ${address}`);
+          console.log(`Emergency key rotation completed for ${address}`);
   }
 
   /**
@@ -281,26 +281,26 @@ export class PFSIntegration {
     // Remove from storage
     await browserStorage.removeRatchetState(address);
     
-    console.log(`🗑️ Removed all PFS data for ${address}`);
+    console.log(`Removed all PFS data for ${address}`);
   }
 
   /**
    * Migrate legacy session to PFS
    */
   static async migrateLegacySession(address: string, sessionKeys: any): Promise<void> {
-    console.log(`🔄 Migrating legacy session to PFS for ${address}`);
+    console.log(`Migrating legacy session to PFS for ${address}`);
     
     // Check if already migrated
     const existing = await browserStorage.getRatchetState(address);
     if (existing) {
-      console.log(`⚠️ PFS already initialized for ${address}, skipping migration`);
+      console.log(`PFS already initialized for ${address}, skipping migration`);
       return;
     }
     
     // Initialize PFS with existing session keys
     await this.initializePFS(address, sessionKeys);
     
-    console.log(`✅ Legacy session migrated to PFS for ${address}`);
+          console.log(`Legacy session migrated to PFS for ${address}`);
   }
 
   /**
@@ -339,7 +339,7 @@ export class PFSIntegration {
     // Shutdown rotation service
     keyRotationService.stopAllRotations();
     
-    console.log('🔒 PFS integration shutdown complete');
+    console.log('PFS integration shutdown complete');
   }
 }
 

@@ -18,32 +18,32 @@ export class CacheManager {
     try {
       // 1. Clear session manager cache (in-memory sessions and localStorage sessions)
       sessionManager.clearAllSessions();
-      console.log('✅ Session manager cache cleared');
+      console.log('Session manager cache cleared');
       
       // 2. Clear message storage (IndexedDB for messages)
       await messageStorage.clearAllData();
-      console.log('✅ Message storage cleared');
+      console.log('Message storage cleared');
       
       // 3. Clear browser storage (IndexedDB + localStorage with prefix)
       await browserStorage.clear();
-      console.log('✅ Browser storage cleared');
+      console.log('Browser storage cleared');
       
       // 4. Clear sessionStorage completely
       sessionStorage.clear();
-      console.log('✅ Session storage cleared');
+      console.log('Session storage cleared');
       
       // 5. Clear any remaining localStorage items that might not have the prefix
       this.clearAdditionalLocalStorageItems();
-      console.log('✅ Additional localStorage items cleared');
+      console.log('Additional localStorage items cleared');
       
       // 6. Clear any service worker caches if present
       await this.clearServiceWorkerCaches();
-      console.log('✅ Service worker caches cleared');
+      console.log('Service worker caches cleared');
       
-      console.log('🎉 All cache clearing completed successfully');
+      console.log('All cache clearing completed successfully');
       
     } catch (error) {
-      console.error('❌ Error during cache clearing:', error);
+      console.error('Error during cache clearing:', error);
       // Continue with emergency wipe even if some clearing failed
       await this.emergencyWipe();
     }
@@ -54,33 +54,33 @@ export class CacheManager {
    * Used when standard clearing fails or for security emergencies
    */
   static async emergencyWipe(): Promise<void> {
-    console.log('🚨 Starting emergency cache wipe...');
+    console.log('Starting emergency cache wipe...');
     
     try {
       // Use the emergency wipe from browserStorage which deletes entire IndexedDB
       await browserStorage.emergencyWipe();
-      console.log('✅ Emergency storage wipe completed');
+      console.log('Emergency storage wipe completed');
       
       // Clear all localStorage completely
       localStorage.clear();
-      console.log('✅ All localStorage cleared');
+      console.log('All localStorage cleared');
       
       // Clear all sessionStorage completely
       sessionStorage.clear();
-      console.log('✅ All sessionStorage cleared');
+      console.log('All sessionStorage cleared');
       
       // Clear session manager
       sessionManager.clearAllSessions();
-      console.log('✅ Session manager emergency cleared');
+      console.log('Session manager emergency cleared');
       
       // Try to clear service worker caches
       await this.clearServiceWorkerCaches();
-      console.log('✅ Service worker caches emergency cleared');
+      console.log('Service worker caches emergency cleared');
       
-      console.log('🎉 Emergency wipe completed successfully');
+      console.log('Emergency wipe completed successfully');
       
     } catch (error) {
-      console.error('❌ Emergency wipe failed:', error);
+      console.error('Emergency wipe failed:', error);
       throw new Error('Emergency cache wipe failed');
     }
   }
@@ -124,9 +124,9 @@ export class CacheManager {
     keysToRemove.forEach(key => {
       try {
         localStorage.removeItem(key);
-        console.log(`🗑️ Removed localStorage key: ${key}`);
+        console.log(`Removed localStorage key: ${key}`);
       } catch (error) {
-        console.warn(`⚠️ Failed to remove localStorage key ${key}:`, error);
+        console.warn(`Failed to remove localStorage key ${key}:`, error);
       }
     });
   }
@@ -139,14 +139,14 @@ export class CacheManager {
       if ('serviceWorker' in navigator && 'caches' in window) {
         const cacheNames = await caches.keys();
         const deletePromises = cacheNames.map(cacheName => {
-          console.log(`🗑️ Deleting cache: ${cacheName}`);
+          console.log(`Deleting cache: ${cacheName}`);
           return caches.delete(cacheName);
         });
         await Promise.all(deletePromises);
-        console.log('✅ All service worker caches cleared');
+        console.log('All service worker caches cleared');
       }
     } catch (error) {
-      console.warn('⚠️ Failed to clear service worker caches:', error);
+      console.warn('Failed to clear service worker caches:', error);
       // Don't throw error as this is not critical
     }
   }
@@ -177,10 +177,10 @@ export class CacheManager {
       // Clear sessionStorage
       sessionStorage.clear();
       
-      console.log('✅ User session cache cleared');
+      console.log('User session cache cleared');
       
     } catch (error) {
-      console.error('❌ Failed to clear user session cache:', error);
+      console.error('Failed to clear user session cache:', error);
       throw error;
     }
   }

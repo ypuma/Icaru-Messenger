@@ -11,10 +11,7 @@ export interface StoredAccount {
   createdAt: Date;
 }
 
-/**
- * Fallback storage using localStorage when IndexedDB fails
- * Less secure but provides functionality
- */
+
 export class FallbackStorage {
   private encryptionKey: Uint8Array | null = null;
 
@@ -244,7 +241,7 @@ export class FallbackStorage {
       }
     } catch (_cryptoError) {
       // If decryption fails, it could be due to old data or corruption.
-      // We will try to parse it as-is for backward compatibility.
+  
       try {
         return atob(encoded);
       } catch (error) {

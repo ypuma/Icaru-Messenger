@@ -22,9 +22,7 @@ export interface SessionResponse {
   expiresAt: string;
 }
 
-/**
- * Create a new session for the user
- */
+
 export const createSession = async (data: SessionRequest): Promise<SessionResponse> => {
   console.log('Creating session with data:', data);
   

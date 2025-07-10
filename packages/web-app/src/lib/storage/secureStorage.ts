@@ -360,7 +360,7 @@ class StorageManager {
       this.storage = new SecureStorage({ password });
       await this.storage.initialize();
       this.usingFallback = false;
-      console.log('✅ Using IndexedDB storage');
+              console.log('Using IndexedDB storage');
     } catch (indexedDBError) {
       console.warn('IndexedDB failed, trying fallback storage:', indexedDBError);
       
@@ -369,7 +369,7 @@ class StorageManager {
         this.storage = new FallbackStorage(password);
         await this.storage.initialize();
         this.usingFallback = true;
-        console.log('✅ Using fallback localStorage storage');
+        console.log('Using fallback localStorage storage');
       } catch (fallbackError) {
         console.error('Both storage methods failed:', fallbackError);
         throw new Error('All storage initialization methods failed');

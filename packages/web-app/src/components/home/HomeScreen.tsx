@@ -227,10 +227,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ handle, onContactSelect, onAddC
     e.preventDefault(); // Prevent default touch behavior
     
     if (expandedContact === contactId) {
-      // Second touch - collapse
+
       setExpandedContact(null);
     } else {
-      // First touch - expand
+
       setExpandedContact(contactId);
     }
   };

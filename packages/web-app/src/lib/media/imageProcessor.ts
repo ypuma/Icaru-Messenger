@@ -50,16 +50,9 @@ class ImageProcessor {
     }
 
     try {
-      // Step 1: Load and process image
       const { processedFile, dimensions } = await this.compressAndStripMetadata(file);
-
-      // Step 2: Generate encryption key
       const encryptionKey = sodium.randombytes_buf(32); // 256-bit key
-
-      // Step 3: Encrypt the processed image
       const encryptedData = await this.encryptImageData(processedFile, encryptionKey);
-
-      // Step 4: Generate secure filename
       const secureFilename = this.generateSecureFilename(processedFile.type);
 
       return {

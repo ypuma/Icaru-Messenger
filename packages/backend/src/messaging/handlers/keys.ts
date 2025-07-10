@@ -35,8 +35,7 @@ export const keysRoutes = async (server: FastifyInstance) => {
         return reply.status(404).send({ error: 'Key bundle not found' });
       }
       
-      // For now, we won't grab a one-time pre-key to keep it simple.
-      // In a full implementation, you'd grab one and mark it as used.
+      
 
       const keyBundle = {
         identityKey: user.identity.publicKey,

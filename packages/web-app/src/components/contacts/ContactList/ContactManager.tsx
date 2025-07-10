@@ -40,7 +40,7 @@ const ContactManager: React.FC<ContactManagerProps> = ({ currentUser, onContactA
     setIsLoading(true);
     setError('');
     try {
-      // In a real app, fetch public key from server
+  
       const response = await fetch(`/api/users/${encodeURIComponent(manualHandle)}/public-key`);
       
       if (!response.ok) {
@@ -153,8 +153,8 @@ const ContactManager: React.FC<ContactManagerProps> = ({ currentUser, onContactA
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // In a real app, you'd use a QR code reader library
-    // For demo purposes, we'll simulate QR code reading
+
+    
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target?.result as string;

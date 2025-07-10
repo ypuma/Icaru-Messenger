@@ -1,7 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { handleSeedRecovery } from './handlers/recovery';
 
-// Simple in-memory store for recovery attempts per IP
 const recoveryAttempts: Map<string, number[]> = new Map();
 
 const MAX_ATTEMPTS_PER_HOUR = 3;
@@ -85,9 +84,7 @@ export async function recoveryRoutes(fastify: FastifyInstance) {
   });
 
   fastify.get('/rate-limit', async (request, reply) => {
-    // NOTE: This is a placeholder. In a real implementation, you would
-    // use a more robust rate-limiting mechanism like a Redis-backed store
-    // associated with the user's IP address.
+
     return reply.send({
       allowed: true,
       retryAfter: 0,

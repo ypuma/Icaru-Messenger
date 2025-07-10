@@ -1,4 +1,4 @@
-// Generate a cryptographically secure random handle using Web Crypto API
+
 // Format: ABC-123 (3 letters, dash, 3 numbers)
 export const generateHandle = async (): Promise<string> => {
   try {
@@ -9,13 +9,13 @@ export const generateHandle = async (): Promise<string> => {
       window.crypto.getRandomValues(letterArray);
       window.crypto.getRandomValues(numberArray);
       
-      // Generate 3 letters (A-Z)
+    
       let letters = '';
       for (let i = 0; i < 3; i++) {
         letters += String.fromCharCode(65 + (letterArray[i] % 26)); // A-Z
       }
       
-      // Generate 3 numbers (0-9)
+    
       let numbers = '';
       for (let i = 0; i < 3; i++) {
         numbers += ((numberArray[i] % 8) + 2).toString(); // 2-9
@@ -136,16 +136,13 @@ export const isHandleUnique = async (handle: string): Promise<boolean> => {
   }
 };
 
-/**
- * Generate a BIP39-style recovery phrase using the official BIP39 wordlist
- * and proper entropy generation according to the BIP39 specification.
- */
+
 export async function generateRecoveryPhrase(): Promise<string> {
   try {
     // Use dynamic import for bip39 library which implements the spec correctly
     const { generateMnemonic } = await import('bip39');
     
-    // Generate a 12-word mnemonic (128 bits of entropy)
+  
     return generateMnemonic(128);
   } catch (error) {
     console.error('Failed to load bip39 library:', error);
@@ -154,10 +151,7 @@ export async function generateRecoveryPhrase(): Promise<string> {
   }
 }
 
-/**
- * Fallback recovery phrase generator using Web Crypto API
- * Generates a 12-word recovery phrase from a predefined wordlist
- */
+
 function generateSimpleRecoveryPhrase(): string {
   // BIP39 wordlist subset for fallback (first 256 words)
   const words = [

@@ -7,7 +7,7 @@ export async function getUserByHandle(
   reply: FastifyReply
 ) {
   const { handle } = request.params;
-  // The user is authenticated by the middleware, but we don't need their ID for this.
+
   
   try {
     const user = await prisma.user.findUnique({
@@ -45,7 +45,7 @@ export const getPreKeyBundle = async (
         handle: true, 
         publicKey: true,
         // For now, return a mock PreKey bundle
-        // In production, this would be stored in the database
+      
       }
     });
 

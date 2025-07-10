@@ -183,16 +183,16 @@ function App() {
   };
 
   const handleSessionInvalidated = async () => {
-    console.log('🔒 Session invalidated - performing cleanup...');
+          console.log('Session invalidated - performing cleanup...');
     
     try {
       // Use the comprehensive cache clearing for session invalidation too
       globalMessageService.cleanup();
       await clearAllCacheOnLogout();
       setCurrentUser(null);
-      console.log('✅ Session invalidation cleanup completed');
+              console.log('Session invalidation cleanup completed');
     } catch (error) {
-      console.error('❌ Session invalidation cleanup failed:', error);
+              console.error('Session invalidation cleanup failed:', error);
       // Fallback cleanup
       setCurrentUser(null);
       localStorage.clear();
@@ -201,7 +201,7 @@ function App() {
   };
 
   const handleLogout = async () => {
-    console.log('🚪 Initiating logout process...');
+    console.log('Initiating logout process...');
     
     try {
       // 1. First, attempt to logout from server
@@ -217,22 +217,22 @@ function App() {
               token: currentUser.sessionToken
             })
           });
-          console.log('✅ Server logout request completed');
+          console.log('Server logout request completed');
         } catch (error) {
-          console.error('⚠️ Logout request failed (proceeding with local cleanup):', error);
+          console.error('Logout request failed (proceeding with local cleanup):', error);
         }
       }
       
       // 2. Cleanup global message service
       globalMessageService.cleanup();
-      console.log('✅ Global message service cleaned up');
+              console.log('Global message service cleaned up');
       
       // 3. Clear WebSocket connection
       try {
         webSocketClient.disconnect();
-        console.log('✅ WebSocket disconnected');
+                  console.log('WebSocket disconnected');
       } catch (error) {
-        console.warn('⚠️ WebSocket disconnect failed:', error);
+                  console.warn('WebSocket disconnect failed:', error);
       }
       
       // 4. Comprehensive cache clearing
@@ -245,10 +245,10 @@ function App() {
       setSelectedContactDisplayName(null);
       setInitialShowNewChat(false);
       
-      console.log('🎉 Logout process completed successfully');
+      console.log('Logout process completed successfully');
       
     } catch (error) {
-      console.error('❌ Error during logout process:', error);
+      console.error('Error during logout process:', error);
       
       // Fallback: force reset application state even if cache clearing failed
       try {
@@ -262,9 +262,9 @@ function App() {
         localStorage.clear();
         sessionStorage.clear();
         
-        console.log('⚠️ Logout completed with fallback cleanup');
+        console.log('Logout completed with fallback cleanup');
       } catch (fallbackError) {
-        console.error('❌ Even fallback cleanup failed:', fallbackError);
+        console.error('Even fallback cleanup failed:', fallbackError);
         // Force page reload as last resort
         window.location.reload();
       }

@@ -39,9 +39,7 @@ const rateLimitTracker = new Map<string, { count: number; resetTime: number }>()
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const MAX_REQUESTS_PER_WINDOW = 10;
 
-/**
- * Rate limiting middleware for account operations
- */
+
 function checkRateLimit(request: FastifyRequest): boolean {
   if (isRateLimitDisabled) {
     logger.warn('Rate limiting is temporarily disabled.');
@@ -65,17 +63,13 @@ function checkRateLimit(request: FastifyRequest): boolean {
   return true;
 }
 
-/**
- * Toggles the rate limit on or off.
- */
+
 export function toggleRateLimit(shouldDisable: boolean) {
   isRateLimitDisabled = shouldDisable;
   logger.info(`Rate limiting has been ${shouldDisable ? 'disabled' : 'enabled'}.`);
 }
 
-/**
- * Validate handle format
- */
+
 function validateHandle(handle: string): { valid: boolean; error?: string } {
   if (!handle || typeof handle !== 'string') {
     return { valid: false, error: 'Handle is required and must be a string' };
@@ -88,10 +82,7 @@ function validateHandle(handle: string): { valid: boolean; error?: string } {
   return { valid: true };
 }
 
-/**
- * Validate and normalize public key format
- * Accepts both Signal Protocol keys and composite Sodium keys
- */
+
 function validatePublicKey(publicKey: string): { valid: boolean; error?: string; normalizedKey?: string } {
   try {
     if (!publicKey || typeof publicKey !== 'string') {
@@ -140,9 +131,7 @@ function validatePublicKey(publicKey: string): { valid: boolean; error?: string;
   }
 }
 
-/**
- * Check if handle is available
- */
+
 export async function checkHandleAvailability(request: FastifyRequest, reply: FastifyReply) {
   const { handle } = request.body as { handle: string };
   
@@ -166,9 +155,7 @@ export async function checkHandleAvailability(request: FastifyRequest, reply: Fa
   }
 }
 
-/**
- * Create new account with collision detection
- */
+
 export async function createAccount(
   request: FastifyRequest<{ Body: { handle: string, publicKey: string } }>,
   reply: FastifyReply
@@ -197,7 +184,7 @@ export async function createAccount(
     // key used for E2EE so that both client and server speak the same
     // crypto identity.  For now we simply mirror it into the Identity and
     // SignedPreKey tables so that the existing key-bundle endpoint keeps
-    // working without any changes on the front-end.
+  
 
     // Transaction to prevent race conditions
     const result = await prismaClient.$transaction(async (tx: any) => {
@@ -262,9 +249,7 @@ export async function createAccount(
   }
 }
 
-/**
- * Get account information by handle
- */
+
 export async function getAccount(
   request: FastifyRequest<{ Params: { handle: string } }>,
   reply: FastifyReply
@@ -314,9 +299,7 @@ export async function getAccount(
   }
 }
 
-/**
- * Delete account by handle (for cleanup/testing purposes)
- */
+
 export async function deleteAccount(
   request: FastifyRequest<{ Params: { handle: string } }>,
   reply: FastifyReply
@@ -366,9 +349,7 @@ export async function deleteAccount(
   }
 }
 
-/**
- * Health check endpoint
- */
+
 export async function healthCheck(
   request: FastifyRequest,
   reply: FastifyReply
@@ -392,9 +373,7 @@ export async function healthCheck(
   }
 }
 
-/**
- * Delete account using recovery phrase
- */
+
 export async function deleteAccountWithRecovery(
   request: FastifyRequest<{ Body: { publicKey: string } }>,
   reply: FastifyReply

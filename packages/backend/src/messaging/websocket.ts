@@ -105,7 +105,7 @@ export function setupWebSocket(fastify: FastifyInstance) {
           const message: WebSocketMessage = JSON.parse(data.toString());
           logger.info(`Received WebSocket message: ${JSON.stringify(message, null, 2)}`);
 
-          // First message must be authentication
+      
           if (!authenticatedUser && message.type !== 'auth') {
             socket.send(JSON.stringify({
               type: 'error',
